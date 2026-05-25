@@ -55,7 +55,10 @@ function doPost(e) {
     const raw = (e && e.parameter && e.parameter.payload) ? e.parameter.payload : (e && e.postData && e.postData.contents ? e.postData.contents : '{}');
     const body = JSON.parse(raw);
 
-    if (body.action === 'save') {
+    if (body.action === 'rotateAccessKey') {
+      const boardId = body.boardId || body.board || 'grandma-home-board';
+      result = rotateBoardAccessKey_(boardId, body.oldAccessKey || body.currentAccessKey || accessKeyFromBody_(body), body.newAccessKey || '');
+    } else if (body.action === 'save') {
       const boardId = body.boardId || body.board || 'grandma-home-board';
       requireBoardAccess_(boardId, accessKeyFromBody_(body), true);
       result = saveBoard_(boardId, body.value || {});
@@ -148,6 +151,41 @@ function requireBoardAccess_(boardId, accessKey, allowRegister) {
 }
 
 /* V24_SECURITY_ACCESS_KEY_PATCH_APPS_SCRIPT */
+
+
+function rotateBoardAccessKey_(boardId, oldAccessKey, newAccessKey) {
+  ensureSheets_();
+  boardId = String(boardId || '');
+  oldAccessKey = String(oldAccessKey || '');
+  newAccessKey = String(newAccessKey || '');
+
+  if (!boardId) throw new Error('חסר מזהה לוח');
+  if (!newAccessKey) throw new Error('חסר מפתח חדש');
+
+  const sheet = getOrCreateSheet_(SECURITY_SHEET, ['board_id', 'access_hash', 'created_at', 'updated_at']);
+  const row = getSecurityRow_(boardId);
+  const now = new Date();
+  const newHash = hashAccessKey_(newAccessKey);
+
+  // Backward compatibility: if the board has no security row yet, create it.
+  if (!row || !row.hash) {
+    if (row && !row.hash) {
+      sheet.getRange(row.row, 2, 1, 3).setValues([[newHash, now, now]]);
+    } else {
+      sheet.appendRow([boardId, newHash, now, now]);
+    }
+    return { rotated: true, registered: true };
+  }
+
+  if (!oldAccessKey) throw new Error('כדי להחליף מפתח צריך את המפתח הנוכחי');
+  if (hashAccessKey_(oldAccessKey) !== row.hash) throw new Error('המפתח הנוכחי לא נכון');
+
+  sheet.getRange(row.row, 2).setValue(newHash);
+  sheet.getRange(row.row, 4).setValue(now);
+  return { rotated: true, registered: false };
+}
+
+/* V24_ACCESS_KEY_MANAGER_PATCH_APPS_SCRIPT */
 
 function output_(obj, callback) {
   const json = JSON.stringify(obj);

@@ -777,6 +777,59 @@ body.has-unsaved select{
   scroll-margin-top:120px;
 }
 
+
+/* V24_ACCESS_KEY_MANAGER_PATCH */
+.accessKeyManager{
+  background:linear-gradient(135deg,#eef7ff,#f9fcff);
+  border:2px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin:14px 0 18px;
+  box-shadow:0 14px 36px rgba(52,105,150,.10);
+}
+.accessKeyManager h3{
+  margin:0 0 8px;
+  font-size:22px;
+  font-weight:1000;
+  color:var(--ink);
+}
+.accessKeyManager p{
+  margin:6px 0 12px;
+  color:#385d7a;
+  font-weight:850;
+  line-height:1.45;
+}
+.accessKeyBox{
+  direction:ltr;
+  text-align:left;
+  width:100%;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:16px;
+  padding:12px;
+  border:2px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  color:#173653;
+}
+.accessKeyManager .dangerNote{
+  background:#fff7df;
+  border:1px solid #f1d596;
+  border-radius:14px;
+  padding:10px 12px;
+  color:#5b4820;
+  font-weight:850;
+  margin-top:10px;
+}
+.accessKeyManager .actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
+}
+@media(max-width:760px){
+  .accessKeyManager .actions button{width:100%}
+}
+
 </style><link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -870,6 +923,61 @@ function missingAccessKeyNotice(){
   if(hasFamilyAccessKey())return"";
   return `<section class="card" style="border:2px solid #f1d596;background:#fff7df;color:#4b3b18"><h2>🔐 ייתכן שחסר מפתח גישה</h2><p>אם הלוח לא נטען או לא נשמר, פתחו שוב את הקישור המקורי שקיבלתם במשפחה. אפשר גם להדביק כאן את המפתח אם הוא נשלח בנפרד.</p><input id="manualAccessKey" placeholder="הדבקת מפתח גישה" style="direction:ltr;text-align:left"><button class="btn green" onclick="saveManualAccessKey()">שמירת מפתח וטעינה מחדש</button></section>`;
 }
+
+
+function accessKeyManagerHtml(){
+  const key=currentFamilyAccessKey();
+  const masked=key?`${key.slice(0,6)}••••••••••••••••${key.slice(-6)}`:"אין מפתח שמור בדפדפן הזה";
+  return `<section class="accessKeyManager no-print"><h3>🔐 מפתח גישה משפחתי</h3><p>המפתח נשמר בדפדפן הזה ומופיע גם בקישור המשפחתי המקורי. הוא עוזר לוודא שרק מי שקיבל את הקישור יכול לקרוא או לעדכן את הלוח.</p><input class="accessKeyBox" id="accessKeyBox" readonly value="${esc(masked)}"><div class="actions"><button class="btn soft" data-a="copyAccessKey">📋 העתקת המפתח</button><button class="btn soft" data-a="showAccessKey">👁️ הצגת המפתח</button><button class="btn rose" data-a="rotateAccessKey">🔄 יצירת מפתח חדש</button></div><div class="dangerNote">אם יוצרים מפתח חדש, צריך לשלוח מחדש את הקישורים למשפחה. קישורים ישנים עם המפתח הקודם לא יעבדו אחרי ההחלפה.</div></section>`;
+}
+function setFamilyAccessKey(key){
+  key=String(key||"").trim();
+  if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+}
+function randomFamilyAccessKey(){
+  const arr=new Uint8Array(18);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function copyAccessKey(){
+  const key=currentFamilyAccessKey();
+  if(!key)return alert("אין מפתח שמור בדפדפן הזה. פתחו שוב את הקישור המקורי שקיבלתם במשפחה.");
+  try{
+    await navigator.clipboard.writeText(key);
+    showToast?.("המפתח הועתק ✅","ok");
+  }catch{
+    prompt("העתקה ידנית של המפתח:",key);
+  }
+}
+function showAccessKey(){
+  const key=currentFamilyAccessKey();
+  if(!key)return alert("אין מפתח שמור בדפדפן הזה. פתחו שוב את הקישור המקורי שקיבלתם במשפחה.");
+  const el=document.getElementById("accessKeyBox");
+  if(el)el.value=key;
+}
+async function rotateAccessKey(){
+  const oldKey=currentFamilyAccessKey();
+  if(!confirm("ליצור מפתח גישה חדש? אחרי ההחלפה צריך לשלוח מחדש את הקישורים למשפחה."))return;
+  const newKey=randomFamilyAccessKey();
+
+  try{
+    if(typeof postToAppsScript==="function"){
+      const res=await postToAppsScript({action:"rotateAccessKey",boardId:safeBoardId(),oldAccessKey:oldKey,newAccessKey:newKey});
+      if(res&&res.ok===false)throw new Error(res.error||"השרת לא אישר החלפת מפתח");
+    }else{
+      const body={action:"rotateAccessKey",boardId:safeBoardId(),oldAccessKey:oldKey,newAccessKey:newKey};
+      const res=await fetch(apiBase(),{method:"POST",body:JSON.stringify(body)});
+      const json=await res.json().catch(()=>null);
+      if(json&&json.ok===false)throw new Error(json.error||"השרת לא אישר החלפת מפתח");
+    }
+    setFamilyAccessKey(newKey);
+    showToast?.("נוצר מפתח חדש ✅ עכשיו העתיקו ושלחו מחדש את הקישורים למשפחה","ok");
+    render();
+  }catch(err){
+    alert("לא הצלחתי להחליף מפתח. אם זה לוח ישן בלי מפתח, פתחו את הקישור המקורי או נסו לשמור פעם אחת ואז שוב. פרטים: "+(err&&err.message?err.message:err));
+  }
+}
+
 
 function addAccessKeyToParams(params){
   const key=currentFamilyAccessKey();
@@ -1710,7 +1818,7 @@ async function copyPrivateCloudLinks(){
 }
 
 function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
-function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}const app=document.getElementById("app");app.innerHTML=`${statusBadges()}<div class="shell">${header()}${missingAccessKeyNotice()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`;boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.();if(app&&!app.querySelector(".safeEditNotice"))app.insertAdjacentHTML("afterbegin",`<div class="safeEditNotice no-print"><span class="unsavedPill">✍️ יש שינויים בעריכה — הם נשמרים זמנית ולא יימחקו מרענון אוטומטי. לחצו שמירה כשסיימתם.</span></div>`)}
+function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}const app=document.getElementById("app");app.innerHTML=`${statusBadges()}<div class="shell">${header()}${missingAccessKeyNotice()}${accessKeyManagerHtml()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`;boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.();if(app&&!app.querySelector(".safeEditNotice"))app.insertAdjacentHTML("afterbegin",`<div class="safeEditNotice no-print"><span class="unsavedPill">✍️ יש שינויים בעריכה — הם נשמרים זמנית ולא יימחקו מרענון אוטומטי. לחצו שמירה כשסיימתם.</span></div>`)}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");boClearUnsaved?.();render()}
 function readRow(row){const o={};row.querySelectorAll("[data-f]").forEach(el=>{let v=el.value;if(v==="true")v=true;if(v==="false")v=false;o[el.dataset.f]=v});const days=row.querySelector("[data-days]");if(days)o.days=[...days.querySelectorAll("input:checked")].map(x=>Number(x.value));return o}
@@ -1993,7 +2101,7 @@ document.addEventListener("click",e=>{
   copyQuickText(el.getAttribute("data-copy-text"));
 },true);
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="toggleAdminTheme"){toggleAdminTheme();return}if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll"){saveInputs();return}if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="copyAccessKey"){copyAccessKey();return}if(a==="showAccessKey"){showAccessKey();return}if(a==="rotateAccessKey"){rotateAccessKey();return}if(a==="toggleAdminTheme"){toggleAdminTheme();return}if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll"){saveInputs();return}if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);
 const __backofficeRenderBase=render;
 render=function(){
@@ -2120,4 +2228,6 @@ setTimeout(()=>{boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.()},0
 /* V24_SECURITY_ACCESS_KEY_PATCH_BOINDEX */
 
 /* V24_SECURITY_FRAGMENT_KEY_UX_PATCH_BOINDEX */
+
+/* V24_ACCESS_KEY_MANAGER_PATCH_BOINDEX */
 </script></body></html>
