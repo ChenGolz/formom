@@ -1,4 +1,4 @@
-const CACHE_NAME="luach-pwa-v1";
+const CACHE_NAME="luach-pwa-v2-calm-fix";
 const CORE_FILES=[
   "./",
   "./index.html",
@@ -7,7 +7,8 @@ const CORE_FILES=[
   "./backoffice/index.html",
   "./manifest.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./favicon.ico"
 ];
 
 self.addEventListener("install",event=>{
