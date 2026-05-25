@@ -185,12 +185,47 @@ function randomFamilyAccessKey(){
   crypto.getRandomValues(arr);
   return [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-function currentFamilyAccessKey(){
-  const p=getParams();
-  const fromUrl=p.get("key")||p.get("token")||p.get("boardKey")||"";
-  if(fromUrl){localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,fromUrl);return fromUrl}
-  return localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+function currentFamilyAccessKey(){return accessKeyFromUrlOrStorage()}
+
+function familyHashParams(){
+  const h=(location.hash||"").replace(/^#/,"");
+  return new URLSearchParams(h);
 }
+function cleanFamilyHashFromUrl(){
+  if(!location.hash)return;
+  const clean=location.pathname+location.search;
+  history.replaceState(history.state||null,"",clean);
+}
+function accessKeyFromUrlOrStorage(){
+  const p=getParams();
+  const hp=familyHashParams();
+  const fromHash=hp.get("key")||hp.get("token")||hp.get("boardKey")||"";
+  const fromQuery=p.get("key")||p.get("token")||p.get("boardKey")||"";
+  const key=fromHash||fromQuery||localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+  if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+  if(fromHash)cleanFamilyHashFromUrl();
+  return key;
+}
+function urlWithFamilyKey(url,key=currentFamilyAccessKey()){
+  key=String(key||"").trim();
+  if(!key)return url.toString();
+  url.hash=`key=${encodeURIComponent(key)}`;
+  return urlWithFamilyKey(url);
+}
+function missingKeyHtml(){
+  const hasBoard=!!currentBoard();
+  const hasKey=!!currentFamilyAccessKey();
+  if(!hasBoard||hasKey)return"";
+  return `<div class="card" style="border:2px solid #f1d596;background:#fff7df;color:#4b3b18"><h2>🔐 ייתכן שחסר מפתח גישה</h2><p>אם הלוח לא נטען, פתחו שוב את הקישור המקורי שקיבלתם במשפחה. אפשר גם להדביק כאן את המפתח אם הוא נשלח בנפרד.</p><input id="manualAccessKey" placeholder="הדבקת מפתח גישה" style="direction:ltr;text-align:left"><button class="bigBtn" onclick="saveManualAccessKey()">שמירת מפתח וטעינה מחדש</button></div>`;
+}
+function saveManualAccessKey(){
+  const el=document.getElementById("manualAccessKey");
+  const key=String(el&&el.value||"").trim();
+  if(!key)return alert("לא הוזן מפתח");
+  setFamilyAccessKey(key);
+  location.reload();
+}
+
 function setFamilyAccessKey(key){
   key=String(key||"").trim();
   if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
@@ -224,8 +259,6 @@ function addPrivateParams(params){
   const folder=currentDriveFolder();
   if(api)params.set("api",api);
   if(folder)params.set("driveFolder",folder);
-  const accessKey=currentFamilyAccessKey();
-  if(accessKey)params.set("key",accessKey);
   return params;
 }
 function hasOwnerCloud(){return !!currentCloudUrl()}
@@ -283,7 +316,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-access-key-v24");
+  url.searchParams.set("v","security-fragment-key-ux-v24");
   addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
@@ -292,7 +325,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","security-access-key-v24");
+  params.set("v","security-fragment-key-ux-v24");
   addPrivateParams(params);
   return base+"?"+params.toString();
 }
@@ -312,7 +345,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-access-key-v24");
+  url.searchParams.set("v","security-fragment-key-ux-v24");
   addPrivateParams(url.searchParams);
   return url.toString();
 }
@@ -334,7 +367,7 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-access-key-v24");
+  url.searchParams.set("v","security-fragment-key-ux-v24");
   addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }
@@ -458,6 +491,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* V24_PERFORMANCE_ACCESSIBILITY_PATCH_INDEX */
 
 /* V24_SECURITY_ACCESS_KEY_PATCH_INDEX */
+
+/* V24_SECURITY_FRAGMENT_KEY_UX_PATCH_INDEX */
 </script>
 </body>
 </html>

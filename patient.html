@@ -885,12 +885,48 @@ const OWNER_DEFAULT_POLL_MS=60000;
 
 
 const FAMILY_ACCESS_KEY_STORAGE="family_clock_family_access_key_v24";
-function currentFamilyAccessKey(){
-  const p=new URLSearchParams(location.search);
-  const fromUrl=p.get("key")||p.get("token")||p.get("boardKey")||"";
-  if(fromUrl){localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,fromUrl);return fromUrl}
-  return localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+function currentFamilyAccessKey(){return accessKeyFromUrlOrStorage()}
+
+function familyHashParams(){
+  const h=(location.hash||"").replace(/^#/,"");
+  return new URLSearchParams(h);
 }
+function cleanFamilyHashFromUrl(){
+  if(!location.hash)return;
+  const clean=location.pathname+location.search;
+  history.replaceState(history.state||null,"",clean);
+}
+function accessKeyFromUrlOrStorage(){
+  const p=new URLSearchParams(location.search);
+  const hp=familyHashParams();
+  const fromHash=hp.get("key")||hp.get("token")||hp.get("boardKey")||"";
+  const fromQuery=p.get("key")||p.get("token")||p.get("boardKey")||"";
+  const key=fromHash||fromQuery||localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+  if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+  if(fromHash)cleanFamilyHashFromUrl();
+  return key;
+}
+function urlWithFamilyKey(url,key=currentFamilyAccessKey()){
+  key=String(key||"").trim();
+  if(!key)return url.toString();
+  url.hash=`key=${encodeURIComponent(key)}`;
+  return url.toString();
+}
+function hasFamilyAccessKey(){
+  return !!currentFamilyAccessKey();
+}
+function saveManualAccessKey(){
+  const el=document.getElementById("manualAccessKey");
+  const key=String(el&&el.value||"").trim();
+  if(!key)return alert("לא הוזן מפתח");
+  localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+  location.reload();
+}
+function missingAccessKeyNotice(){
+  if(hasFamilyAccessKey())return"";
+  return `<section class="card" style="border:2px solid #f1d596;background:#fff7df;color:#4b3b18"><h2>🔐 ייתכן שחסר מפתח גישה</h2><p>אם הלוח לא נטען או לא נשמר, פתחו שוב את הקישור המקורי שקיבלתם במשפחה. אפשר גם להדביק כאן את המפתח אם הוא נשלח בנפרד.</p><input id="manualAccessKey" placeholder="הדבקת מפתח גישה" style="direction:ltr;text-align:left"><button class="btn green" onclick="saveManualAccessKey()">שמירת מפתח וטעינה מחדש</button></section>`;
+}
+
 function addAccessKeyToParams(params){
   const key=currentFamilyAccessKey();
   if(key)params.set("key",key);
@@ -1427,7 +1463,7 @@ function shortBoardName(id){
 }
 function boardLinksFor(id){
   const root=location.href.replace(/\/backoffice\/?.*$/,"/").replace(/[?#].*$/,"");
-  const k=currentFamilyAccessKey();const keyPart=k?`&key=${encodeURIComponent(k)}`:"";return {patient:`${root}?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}${keyPart}`};
+  const k=currentFamilyAccessKey();const keyPart=k?`#key=${encodeURIComponent(k)}`:"";return {patient:`${root}?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}${keyPart}`};
 }
 function activateBoard(id){
   const app=document.getElementById("app");if(app)delete app.dataset.onboarding;
@@ -1797,4 +1833,6 @@ if("serviceWorker" in navigator){
 /* PERFECT_PWA_ROUTER_V23_PATIENT */
 
 /* V24_SECURITY_ACCESS_KEY_PATCH_PATIENT */
+
+/* V24_SECURITY_FRAGMENT_KEY_UX_PATCH_PATIENT */
 </script></body></html>
