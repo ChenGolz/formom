@@ -1750,11 +1750,13 @@ setTimeout(()=>{
 /* PINGHTML_FIX_V21_BOINDEX */
 
 /* HARD_PING_FALLBACK_V22_BOINDEX */
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-}
+
 
 /* PERFECT_PWA_ROUTER_V23_BOINDEX */
 
 /* OVERLAY_BUTTONS_FIX_V24_BOINDEX */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+/* V24_FINAL_PWA_ROUTER_PATCH_BOINDEX */
 </script></body></html>

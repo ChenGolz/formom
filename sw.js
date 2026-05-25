@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v24-overlay-buttons-fix";
+const CACHE_NAME="family-clock-v24-final-pwa-router-patch";
 
 const CORE_FILES=[
   "./",
@@ -12,21 +12,10 @@ const CORE_FILES=[
   "./favicon.ico"
 ];
 
-// Optional files are best-effort only and never block PWA installation.
-const OPTIONAL_FILES=[
-  "./README.md"
-];
-
-async function safeCacheAll(cache, files){
-  await Promise.all(files.map(file =>
-    cache.add(file).catch(err => console.warn("cache skip", file, err))
-  ));
-}
-
 self.addEventListener("install",event=>{
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => safeCacheAll(cache, CORE_FILES.concat(OPTIONAL_FILES)))
+      .then(cache=>Promise.all(CORE_FILES.map(file=>cache.add(file).catch(err=>console.warn("cache skip",file,err)))))
       .then(()=>self.skipWaiting())
   );
 });
@@ -45,7 +34,7 @@ self.addEventListener("fetch",event=>{
 
   const url=new URL(req.url);
 
-  // Live APIs and embedded media must not be cached.
+  // Live APIs and embedded media should not be cached.
   if(
     url.hostname.includes("script.google") ||
     url.hostname.includes("googleusercontent") ||
@@ -75,6 +64,4 @@ self.addEventListener("fetch",event=>{
   );
 });
 
-/* PERFECT_PWA_ROUTER_V23_SW */
-
-/* OVERLAY_BUTTONS_FIX_V24_SW */
+/* V24_FINAL_PWA_ROUTER_PATCH_SW */
