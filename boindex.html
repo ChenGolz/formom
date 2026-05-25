@@ -743,6 +743,40 @@ img,svg,iframe,audio{
   }
 }
 
+
+/* V24_BACKOFFICE_SAFE_EDITING_PATCH */
+.safeEditNotice{
+  display:none;
+  margin:10px 0 14px;
+  padding:10px 12px;
+  border-radius:18px;
+  background:#fff7df;
+  border:1px solid #f1d596;
+  color:#5b4820;
+  font-weight:900;
+}
+body.is-editing .safeEditNotice,
+body.has-unsaved .safeEditNotice{
+  display:block;
+}
+.unsavedPill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:38px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:#fff7df;
+  color:#5b4820;
+  border:1px solid #f1d596;
+  font-weight:1000;
+}
+body.has-unsaved input,
+body.has-unsaved textarea,
+body.has-unsaved select{
+  scroll-margin-top:120px;
+}
+
 </style><link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -923,7 +957,117 @@ function jsonpLoad(){
     document.head.appendChild(script);
   });
 }
-async function pullCloud(){
+
+/* V24_BACKOFFICE_SAFE_EDITING_PATCH */
+let __boUserEditing=false;
+let __boUnsaved=false;
+let __boLastEditAt=0;
+let __boEditTimer=null;
+const BO_EDIT_GRACE_MS=20000;
+
+function boDraftKey(){
+  let id="default";
+  try{id=(typeof safeBoardId==="function"?safeBoardId():(CLOUD&&CLOUD.boardId)||"default")}catch{}
+  return "family_clock_bo_draft_"+id;
+}
+function boIsEditableElement(el){
+  return !!(el && el.closest && el.closest("input,textarea,select,[contenteditable='true']"));
+}
+function boSaveDraftFromDom(){
+  try{
+    const values={};
+    document.querySelectorAll("[data-path]").forEach(el=>{
+      values[el.dataset.path]=el.value;
+    });
+    sessionStorage.setItem(boDraftKey(),JSON.stringify({t:Date.now(),values}));
+  }catch{}
+}
+function boRestoreDraftToDom(){
+  try{
+    const raw=sessionStorage.getItem(boDraftKey());
+    if(!raw)return;
+    const draft=JSON.parse(raw);
+    if(!draft||!draft.values||Date.now()-Number(draft.t||0)>6*60*60*1000){
+      sessionStorage.removeItem(boDraftKey());
+      return;
+    }
+    let restored=false;
+    document.querySelectorAll("[data-path]").forEach(el=>{
+      const k=el.dataset.path;
+      if(Object.prototype.hasOwnProperty.call(draft.values,k) && el.value!==String(draft.values[k]??"")){
+        el.value=String(draft.values[k]??"");
+        restored=true;
+      }
+    });
+    if(restored){
+      __boUnsaved=true;
+      document.body.classList.add("has-unsaved");
+    }
+  }catch{}
+}
+function boClearDraft(){
+  try{sessionStorage.removeItem(boDraftKey())}catch{}
+}
+function boMarkEditing(){
+  __boUserEditing=true;
+  __boUnsaved=true;
+  __boLastEditAt=Date.now();
+  document.body.classList.add("is-editing","has-unsaved");
+  boSaveDraftFromDom();
+  clearTimeout(__boEditTimer);
+  __boEditTimer=setTimeout(boMaybeReleaseEditing,BO_EDIT_GRACE_MS+400);
+}
+function boMaybeReleaseEditing(){
+  const active=document.activeElement;
+  if(boIsEditableElement(active))return;
+  if(Date.now()-__boLastEditAt<BO_EDIT_GRACE_MS)return;
+  __boUserEditing=false;
+  document.body.classList.remove("is-editing");
+}
+function boClearUnsaved(){
+  __boUnsaved=false;
+  __boUserEditing=false;
+  boClearDraft();
+  document.body.classList.remove("is-editing","has-unsaved");
+}
+function boShouldPauseCloudRefresh(){
+  return __boUserEditing || __boUnsaved || boIsEditableElement(document.activeElement);
+}
+function boDisableNativeRequiredValidation(){
+  document.querySelectorAll("form").forEach(f=>{
+    f.noValidate=true;
+    f.addEventListener("submit",e=>e.preventDefault(),{passive:false});
+  });
+  document.querySelectorAll("input,textarea,select").forEach(el=>{
+    el.required=false;
+    el.removeAttribute("required");
+    el.removeAttribute("aria-required");
+  });
+}
+document.addEventListener("focusin",e=>{
+  if(boIsEditableElement(e.target))boMarkEditing();
+},true);
+document.addEventListener("input",e=>{
+  if(boIsEditableElement(e.target))boMarkEditing();
+},true);
+document.addEventListener("change",e=>{
+  if(boIsEditableElement(e.target))boMarkEditing();
+},true);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && e.target && e.target.matches && e.target.matches("input")){
+    e.preventDefault();
+    e.stopPropagation();
+    boMarkEditing();
+  }
+},true);
+window.addEventListener("beforeunload",e=>{
+  if(__boUnsaved){
+    e.preventDefault();
+    e.returnValue="";
+  }
+});
+
+async function pullCloud(){if(typeof boShouldPauseCloudRefresh==="function"&&boShouldPauseCloudRefresh())return;
   if(!cloudOn())return;
   const payload=await jsonpLoad();
   if(!payload||!payload.ok)return;
@@ -956,7 +1100,7 @@ pushCloud=async function(){
   setSavingButtons(true,"⏳ שומר נתונים לענן...");
   try{
     await __pushCloudBaseV20();
-    setSavingButtons(false,"✅ נשמר בהצלחה");
+    setSavingButtons(false,"✅ נשמר בהצלחה");boClearUnsaved?.();
   }catch(err){
     setSavingButtons(false,"⚠️ נשמר מקומית");
     throw err;
@@ -973,7 +1117,7 @@ function startCloudSync(){
 setInterval(()=>pullCloud().catch(()=>{}),Number(CLOUD.pollMs||60000));
 }
 startCloudSync();
-window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){data=load();render&&render();showStatus("עודכן")}})
+window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){if(typeof boShouldPauseCloudRefresh==="function"&&boShouldPauseCloudRefresh())return;data=load();render&&render();showStatus("עודכן")}})
 function speak(txt,rate=.8){if(!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang="he-IL";u.rate=rate;u.pitch=.95;window.speechSynthesis.speak(u)}
 let audioUnlocked=false;
 function unlockAudio(){audioUnlocked=true;try{const C=window.AudioContext||window.webkitAudioContext;if(!window.__ctx)window.__ctx=new C();if(window.__ctx.state==="suspended")window.__ctx.resume()}catch{}}
@@ -1499,9 +1643,9 @@ async function copyPrivateCloudLinks(){
 }
 
 function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
-function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
+function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}const app=document.getElementById("app");app.innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`;boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.();if(app&&!app.querySelector(".safeEditNotice"))app.insertAdjacentHTML("afterbegin",`<div class="safeEditNotice no-print"><span class="unsavedPill">✍️ יש שינויים בעריכה — הם נשמרים זמנית ולא יימחקו מרענון אוטומטי. לחצו שמירה כשסיימתם.</span></div>`)}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
-function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");render()}
+function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");boClearUnsaved?.();render()}
 function readRow(row){const o={};row.querySelectorAll("[data-f]").forEach(el=>{let v=el.value;if(v==="true")v=true;if(v==="false")v=false;o[el.dataset.f]=v});const days=row.querySelector("[data-days]");if(days)o.days=[...days.querySelectorAll("input:checked")].map(x=>Number(x.value));return o}
 function saveRow(type,id){const row=document.querySelector(`[data-type="${type}"][data-id="${id}"]`);const vals=readRow(row);data[type]=data[type].map(x=>x.id===Number(id)?{...x,...vals}:x);save();render()}
 function addRow(type){const row=document.querySelector(`[data-new="${type}"]`);const vals=readRow(row);if(type==="schedule"&&!vals.text)return alert("צריך פעולה");if(type==="contacts"&&!vals.phone)return alert("צריך טלפון");if(type==="family"&&!vals.name)return alert("צריך שם");if(type==="medications"&&!vals.name)return alert("צריך שם תרופה");if(type==="symptoms"&&!vals.what)return alert("צריך לכתוב מה קרה");if(type==="monthly"&&!vals.title)return alert("צריך כותרת");const item={id:Date.now(),...vals};if(type==="schedule")Object.assign(item,{days:[0,1,2,3,4,5,6],forPatient:true,done:false});if(type==="medications")Object.assign(item,{taken:false,givenBy:"",notes:""});if(type==="symptoms"){item.date=item.date||today();item.time=item.time||`${two(new Date().getHours())}:${two(new Date().getMinutes())}`;data.symptoms.unshift(item)}else data[type].push(item);save();render()}
@@ -1900,5 +2044,9 @@ function toggleAdminTheme(){
   showToast?.(next==="auto"?"מצב תאורה אוטומטי":next==="dark"?"מצב כהה":"מצב בהיר","ok");
 }
 initAdminThemeToggle();
+
+
+setTimeout(()=>{boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.()},0);
+/* V24_BACKOFFICE_SAFE_EDITING_PATCH_BOINDEX */
 
 </script></body></html>
