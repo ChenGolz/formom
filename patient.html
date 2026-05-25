@@ -373,7 +373,7 @@ html,body,button,input,textarea,select{
 @media(max-width:850px){.onboardActions{grid-template-columns:1fr}}
 
 
-/* מסך פתיחה פשוט למשפחות — ללא הגדרות טכניות */
+/* מסך פתיחה פשוט למשפחות - ללא הגדרות טכניות */
 .portalSteps{
   display:grid;
   gap:14px;
@@ -828,6 +828,14 @@ img,svg,iframe,audio{
   }
 }
 
+
+/* V24_QUALITY_FIXES_PATCH_PATIENT */
+:fullscreen .nav,:fullscreen .footer,body.patient-fullscreen .nav,body.patient-fullscreen .footer{display:none!important}
+:fullscreen .shell,body.patient-fullscreen .shell{max-width:none!important;width:100vw!important;min-height:100vh!important;padding:clamp(8px,2vw,24px)!important}
+.orientCompact p{margin:.12em 0!important;line-height:1.18!important}.orientCompact .big{line-height:1.15!important}
+.patientTopNavHint,.footer{display:none!important}
+@media print{.nav,.footer,.no-print{display:none!important}body{background:white!important;color:#111!important}.shell{max-width:none!important;padding:0!important}.section{break-inside:avoid}.card{box-shadow:none!important;border:1px solid #ddd!important}.hero{break-after:avoid!important}.grid,.grid3,.wide{display:block!important}.card{margin:0 0 10mm!important}}
+
 </style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -871,7 +879,7 @@ if(typeof window.pingHtml!=="function"){
 const STORAGE_KEY="luach_advanced_v4";
 
 /*
-  הגדרת בעלת הדף משפחתי — עושים פעם אחת לפני שיתוף:
+  הגדרת בעלת הדף משפחתי - עושים פעם אחת לפני שיתוף:
   1. יוצרים Google Sheet.
   2. נכנסים ל-Extensions > Apps Script.
   3. מדביקים את הקוד מהקובץ apps-script/Code.gs.
@@ -993,11 +1001,11 @@ function saveCloudConfig(){localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify(
 
 const DEFAULT={
   view:"patient",stage:"middle",
-  settings:{screensaverEnabled:true,screensaverMinutes:5,memoryIntervalSeconds:12,anchorChime:true,livePingChime:true,nightModeEnabled:true,nightStart:"22:00",nightEnd:"06:00",wakeLockEnabled:true,weatherEnabled:true,weatherLat:"32.0853",weatherLon:"34.7818",weatherCity:"תל אביב",weatherAutoFromProfile:true,musicUrl:"",musicButtonLabel:"לשמוע שירים שאני אוהבת",heartbeatEnabled:true,patientPassiveLock:true,lockTouchScreen:false},
+  settings:{screensaverEnabled:true,screensaverMinutes:5,memoryIntervalSeconds:12,anchorChime:true,livePingChime:true,nightModeEnabled:true,nightStart:"22:00",nightEnd:"06:00",wakeLockEnabled:true,weatherEnabled:true,weatherLat:"32.0853",weatherLon:"34.7818",weatherCity:"תל אביב",weatherAutoFromProfile:true,musicUrl:"https://www.youtube.com/embed/videoseries?list=PLyYVZfWnC5AmHo7UeSHc3dXWOLZ3XLGN5",musicButtonLabel:"לשמוע שירים שאני אוהבת",heartbeatEnabled:true,patientPassiveLock:true,lockTouchScreen:false},
   livePing:null,
   voiceStorage:{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45},
   voiceRecordings:{calm:"",confused:"",night:""},
-  person:{firstName:"רחל",fullName:"רחל כהן",address:"רחוב הדוגמה 10, דירה 4",city:"תל אביב",safeMessage:"זה הבית שלי. המשפחה יודעת איפה אני. אין צורך לצאת לבד. אם אני צריכה עזרה, אפשר להתקשר לנועה.",identityNote:"אני רחל. אני אהובה. המשפחה שלי דואגת לי ומתקשרת אליי. היום אפשר להתקדם לאט, דבר אחד בכל פעם.",calmingTips:"מוזיקה שקטה, תה, תמונות משפחה ושיחה קצרה עם נועה.",riskNotes:"רעש, חושך, רעב, כאב או יותר מדי אנשים עלולים לבלבל."},
+  person:{firstName:"",fullName:"",gender:"neutral",address:"",city:"",safeMessage:"זה הבית. הכול בסדר. אפשר להישאר רגוע.",identityNote:"המשפחה דואגת. היום אפשר להתקדם לאט.",calmingTips:"מוזיקה שקטה, תה, תמונות משפחה ושיחה קצרה.",riskNotes:"רעש, חושך, רעב, כאב או יותר מדי אנשים עלולים לבלבל."},
   schedule:[{id:1,time:"08:00",text:"לקום, לשטוף פנים ולהתלבש",image:"☀️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:2,time:"09:00",text:"ארוחת בוקר",image:"🍳",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:3,time:"10:30",text:"שיחה קצרה עם המשפחה",image:"📞",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:4,time:"13:00",text:"ארוחת צהריים",image:"🍲",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:5,time:"16:00",text:"מנוחה / טלוויזיה / מוזיקה רגועה",image:"🎵",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:6,time:"19:00",text:"ארוחת ערב",image:"🍽️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:7,time:"21:00",text:"התארגנות לשינה",image:"🌙",days:[0,1,2,3,4,5,6],forPatient:true,done:false}],
   medications:[{id:1,time:"08:30",name:"תרופת בוקר",dose:"לפי מרשם",instructions:"אחרי אוכל",taken:false,givenBy:"",notes:""},{id:2,time:"20:30",name:"תרופת ערב",dose:"לפי מרשם",instructions:"לפני שינה",taken:false,givenBy:"",notes:""}],
   contacts:[{id:1,relation:"הבת שלי",name:"נועה",phone:"050-0000000",note:"להתקשר בכל שאלה",photo:"",videoLink:""},{id:2,relation:"הבן שלי",name:"דני",phone:"052-0000000",note:"משפחה קרובה",photo:"",videoLink:""},{id:3,relation:"מוקד חירום",name:"מד״א",phone:"101",note:"רק במקרה חירום",photo:"",videoLink:""}],
@@ -1005,7 +1013,7 @@ const DEFAULT={
   care:{date:new Date().toISOString().slice(0,10),waterMorning:false,waterNoon:false,waterEvening:false,breakfast:"לא סומן",lunch:"לא סומן",dinner:"לא סומן",toileting:"לא סומן",pain:"לא סומן",mood:"רגוע/ה",sleep:"לא סומן",note:""},
   symptoms:[],
   monthly:[{id:1,date:new Date().toISOString().slice(0,10),title:"יום רגיל ונעים"}],
-  safety:{exitMessage:"הכול בסדר. אם תרצי לצאת, נתקשר קודם לנועה. לא יוצאים לבד.",confusedMessage:"את בבית. המשפחה יודעת איפה את. אין צורך לצאת לבד. אפשר להתקשר לנועה.",emergency:"במקרה חירום בלבד: להתקשר 101 ואז לעדכן את המשפחה.",doorSensor:"אם הדלת נפתחה בלי ליווי — להתקשר מיד למשפחה.",homeChecklist:"לבדוק דלת, גז, תרופות, שטיחים, תאורה ומקלחת.",nightMessage:"עכשיו אמצע הלילה. כולם ישנים והכול בטוח. אפשר לחזור לישון.",bathroomHint:"אם צריך שירותים — ללכת לאט ובזהירות לפי האור.",wanderingNote:"מומלץ לשתף מיקום ב-Google Maps מהטלפון שנמצא בתיק/כיס, ולוודא שהשיתוף מוגדר עד שאשבית אפשרות זו."}
+  safety:{exitMessage:"הכול בסדר. אם תרצי לצאת, נתקשר קודם לנועה. לא יוצאים לבד.",confusedMessage:"את בבית. המשפחה יודעת איפה את. אין צורך לצאת לבד. אפשר להתקשר לנועה.",emergency:"במקרה חירום בלבד: להתקשר 101 ואז לעדכן את המשפחה.",doorSensor:"אם הדלת נפתחה בלי ליווי - להתקשר מיד למשפחה.",homeChecklist:"לבדוק דלת, גז, תרופות, שטיחים, תאורה ומקלחת.",nightMessage:"עכשיו אמצע הלילה. כולם ישנים והכול בטוח. אפשר לחזור לישון.",bathroomHint:"אם צריך שירותים - ללכת לאט ובזהירות לפי האור.",wanderingNote:"מומלץ לשתף מיקום ב-Google Maps מהטלפון שנמצא בתיק/כיס, ולוודא שהשיתוף מוגדר עד שאשבית אפשרות זו."}
 };
 let cloudLast="";
 function clone(o){return JSON.parse(JSON.stringify(o))}
@@ -1462,8 +1470,9 @@ function shortBoardName(id){
   return String(id||"").replace(/^family-/,"").slice(0,8).toUpperCase();
 }
 function boardLinksFor(id){
-  const root=location.href.replace(/\/backoffice\/?.*$/,"/").replace(/[?#].*$/,"");
-  const k=currentFamilyAccessKey();const keyPart=k?`#key=${encodeURIComponent(k)}`:"";return {patient:`${root}?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}${keyPart}`};
+  const root=location.href.replace(/\/patient\.html.*$/,"/").replace(/\/boindex\.html.*$/,"/").replace(/[?#].*$/,"/").replace(/\/+$/,"/");
+  const k=currentFamilyAccessKey();const keyPart=k?`#key=${encodeURIComponent(k)}`:"";
+  return {patient:`${root}patient.html?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}boindex.html?board=${encodeURIComponent(id)}${keyPart}`};
 }
 function activateBoard(id){
   const app=document.getElementById("app");if(app)delete app.dataset.onboarding;
@@ -1538,27 +1547,15 @@ function youtubeEmbed(url){
 let now=new Date(),calm=false,music=false,screensaver=false,memIndex=0,lastActivity=Date.now(),lastNowId=localStorage.getItem("luach_last_now_id")||"",lastPingId=localStorage.getItem("luach_last_ping_id")||"";
 function markActivity(){lastActivity=Date.now();if(screensaver){screensaver=false;render()}}
 ["pointerdown","mousemove","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,markActivity,{passive:true}));
-function header(){const p=dayPart(now),tm=`${two(now.getHours())}:${two(now.getMinutes())}`,th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">${p.emoji} ${p.label}</div><h1 class="h1">שלום ${esc(data.person.firstName)}</h1><p class="lead">${esc(p.sentence)}</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${tm}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">היום</div>${weatherHtml()}${progress(now)}</div></div><nav class="nav no-print"><a class="soft" href="./?mode=backoffice">⚙️ ניהול</a><button class="warm" data-a="calm" data-allow-locked>🌿 אני מבולבלת / צריכה רגע</button>${data.settings.musicUrl?`<button class="soft" data-a="music" data-allow-locked>🎵 ${esc(data.settings.musicButtonLabel||"שירים")}</button>`:""}<button data-a="print" data-allow-locked>🖨️ הדפסה</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
-function items(){const d=now.getDay();return[...data.schedule].filter(x=>x.forPatient&&(!Array.isArray(x.days)||x.days.includes(d))).sort((a,b)=>String(a.time).localeCompare(String(b.time)))}
-function nxl(){const c=now.getHours()*60+now.getMinutes(),it=items(),f=it.filter(x=>min(x.time)>=c),past=it.filter(x=>min(x.time)<=c).slice(-1)[0];return{n:f[0]||past,x:f[1],l:f[2]}}
-function tile(label,item,current){return`<div class="nowtile ${current?"current":""} ${item?.done?"is-done":""}"><div class="medium" style="color:${current?"#2f6297":"#667774"}">${label}</div><div class="emoji">${esc(item?.image||(current?"🕘":"🌿"))}</div><div class="big">${esc(item?.text||"אפשר לנוח")}</div>${item?.time?`<div class="badge">${esc(item.time)}</div>`:""}</div>`}
-function nowNext(){const x=nxl(),adv=data.stage==="advanced";return`<div class="card">${title("🕘","עכשיו / הבא / אחר כך","פחות מידע, יותר בהירות")}<div class="nowgrid">${tile("עכשיו",x.n,true)}${tile("הדבר הבא",x.x,false)}${adv?"":tile("אחר כך",x.l,false)}</div></div>`}
-function contact(c){const phone=String(c.phone||"").replace(/[^0-9+]/g,""),tel=`tel:${phone}`,qr=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(tel)}`;return`<div class="contact"><div class="contacttop"><div class="person">${avatar(c,"☎️")}<div><div style="font-size:32px;font-weight:1000">${esc(c.relation)}</div><div class="medium" style="color:#667774">${esc(c.name)}</div><div class="small">${esc(c.note)}</div></div></div><div><a class="phone" href="${tel}">${esc(c.phone)}</a>${c.videoLink?`<a class="video" target="_blank" href="${esc(c.videoLink)}">🎥 שיחת וידאו</a>`:""}</div></div><details class="details no-print"><summary>📱 אם אין סים בטאבלט — QR לחיוג</summary><div class="qr"><img src="${qr}"><div class="medium">מי שנמצא ליד המטופלת יכול לסרוק ולחייג מיד.</div></div></details></div>`}
-function phones(){const shown=data.stage==="advanced"?data.contacts.slice(0,2):data.contacts;return`<div class="card">${title("☎️","למי אפשר להתקשר?","כפתורים גדולים וברורים")}${shown.map(contact).join("")}</div>`}
-function orient(){return`<section class="section grid grid3"><div class="card warm">${title("🏠","איפה אני נמצאת?")}<div class="big"><p>אני נמצאת בבית.</p><p>${esc(data.person.address)}</p><p>${esc(data.person.city)}</p></div><div class="medium" style="margin-top:16px;background:white;color:#24312f;border-radius:24px;padding:18px">${esc(data.person.safeMessage)}</div></div><div class="card green">${title("❤️","מי אני?","מידע אישי מרגיע")}<div class="medium"><p><strong>שם:</strong> ${esc(data.person.fullName)}</p><p><strong>משפט חשוב:</strong> ${esc(data.person.identityNote)}</p></div></div><div class="card rose">${title("🛡️","אם אני לא בטוחה")}<div class="big"><p>לעצור רגע. לנשום. הכול בסדר.</p><p>${esc(data.safety.confusedMessage)}</p><p>במקרה חירום בלבד: 101</p></div></div></section>`}
-function family(){if(data.stage==="advanced")return"";return`<section class="section card">${title("👨‍👩‍👧","המשפחה הקרובה שלי","תזכורת נעימה לאנשים אהובים")}<div class="familygrid">${data.family.map(f=>`<div class="contact">${avatar(f,"❤️")}<div style="font-size:28px;font-weight:1000;margin-top:12px">${esc(f.relation)}</div><div class="big">${esc(f.name)}</div><div class="medium" style="color:#667774">${esc(f.city)}</div><div class="small">${esc(f.note)}</div></div>`).join("")}</div></section>`}
-function daily(){
-  if(data.stage!=="early")return"";
-  return`<section class="section card">${title("📅","מה עושים היום?")} ${items().map(i=>`<div class="row schedule-item ${i.done?"is-done":""}"><div class="person"><button class="btn soft no-print" data-a="done" data-id="${i.id}">${i.done?"בוצע ✅":"סימון"}</button><div class="emoji" style="font-size:44px;margin:0">${esc(i.image)}</div><div class="medium"><strong>${esc(i.time)}</strong> — ${esc(i.text)}</div></div></div>`).join("")}</section>`;
-}
+function header(){const p=dayPart(now),tm=`${two(now.getHours())}:${two(now.getMinutes())}`,th=theme(now);document.body.className=th.s+(document.fullscreenElement?" patient-fullscreen":"");const adminLink=boardLinksFor(CLOUD.boardId||safeBoardId()).backoffice;const first=(data.person.firstName||"").trim();return`<header class="hero"><div class="hero-grid"><div><div class="pill">${p.emoji} ${p.label}</div><h1 class="h1">${first?`שלום ${esc(first)}`:"שלום"}</h1><p class="lead">${esc(p.sentence)}</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${tm}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">היום</div>${weatherHtml()}${progress(now)}</div></div><nav class="nav no-print"><a class="soft" href="${esc(adminLink)}">⚙️ ניהול</a><button class="warm" data-a="calm" data-allow-locked>🌿 רגע של רוגע</button>${data.settings.musicUrl?`<button class="soft" data-a="music" data-allow-locked>🎵 ${esc(data.settings.musicButtonLabel||"שירים")}</button>`:""}<button data-a="print" data-allow-locked>🖨️ הדפסה</button><button data-a="full">⛶ מסך מלא</button></nav></header>`}
 
 function calmHtml(){
   if(!calm)return"";
   const first=esc(data.person&&data.person.firstName||"");
-  const address=esc([data.person&&data.person.address,data.person&&data.person.city].filter(Boolean).join(", "));
-  const safe=esc(data.person&&data.person.safeMessage||"הכול בסדר. את/ה בבית. המשפחה דואגת לך.");
+  const address=esc([data.person&&data.person.address,data.person&&data.person.city].filter(Boolean).join(" - "));
+  const safe=esc(data.person&&data.person.safeMessage||"זה הבית. הכול בסדר. אפשר להישאר רגוע.");
   const confused=esc(data.safety&&data.safety.confusedMessage||"אפשר לעצור רגע, לנשום לאט, ולהתקשר למשפחה אם צריך.");
-  return `<div class="calmOverlay no-print"><div class="calmBox" data-allow-locked onclick="if(!event.target.closest('button,[data-a],a,input,select,textarea,audio,iframe'))event.stopPropagation()"><div class="title"><div class="icon">🌿</div><div><h2>${first?first+", ":""}הכול בסדר</h2><p>את/ה בטוח/ה. אין צורך למהר.</p></div></div><div class="big calmLine">אני נמצאת בבית.</div>${address?`<div class="medium calmLine">${address}</div>`:""}<div class="medium calmLine">${safe}</div><div class="medium calmLine">${confused}</div><div class="actions"><button class="btn warm" data-a="speak" data-allow-locked>🔊 הקריאי לי שוב</button><button class="btn soft" data-a="stopAudio" data-allow-locked>⏹️ עצירת קול</button><button class="btn blue" data-a="closeCalm" data-allow-locked>הבנתי, לחזור לשעון</button></div></div></div>`;
+  return `<div class="calmOverlay no-print"><div class="calmBox" data-allow-locked onclick="if(!event.target.closest('button,[data-a],a,input,select,textarea,audio,iframe'))event.stopPropagation()"><div class="title"><div class="icon">🌿</div><div><h2>${first?first+", ":""}הכול בסדר</h2><p>זה מקום בטוח. אפשר לנשום רגע.</p></div></div><div class="big calmLine">אני נמצאת בבית.</div>${address?`<div class="medium calmLine">${address}</div>`:""}<div class="medium calmLine">${safe}</div><div class="medium calmLine">${confused}</div><div class="actions"><button class="btn warm" data-a="speak" data-allow-locked>🔊 להשמיע שוב</button><button class="btn soft" data-a="stopAudio" data-allow-locked>⏹️ עצירת קול</button><button class="btn blue" data-a="closeCalm" data-allow-locked>לחזור לשעון</button></div></div></div>`;
 }
 
 function musicHtml(){
@@ -1598,7 +1595,7 @@ function updateBackgroundByTime(){
   else document.body.classList.add("bg-night");
 }
 
-function render(){updateBackgroundByTime();if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${safeOptionalHtml("pingHtml")}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${safeOptionalHtml("musicHtml")}${safeOptionalHtml("calmHtml")}${safeOptionalHtml("pingHtml")}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}<footer class="footer no-print">לוח רגוע למחלות שכחה · לעריכה: Backoffice</footer></div><div id="status" class="status"></div>`}
+function render(){updateBackgroundByTime();if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${safeOptionalHtml("pingHtml")}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${safeOptionalHtml("musicHtml")}${safeOptionalHtml("calmHtml")}${safeOptionalHtml("pingHtml")}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}</div><div id="status" class="status"></div>`}
 function speakCalm(){playFamilyVoice("calm",calmText())}
 function checkAutomation(){const current=nxl().n;const id=current?String(current.id):"";if(id&&lastNowId&&id!==lastNowId&&data.settings.anchorChime&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd))chime("soft");if(id&&id!==lastNowId){lastNowId=id;localStorage.setItem("luach_last_now_id",id)}const p=data.livePing;if(p&&!p.ack&&p.createdAt&&p.durationMs&&Date.now()>Number(p.createdAt)+Number(p.durationMs)){data.livePing=null;save();}if(data.livePing&&!data.livePing.ack&&String(data.livePing.id)!==lastPingId){lastPingId=String(data.livePing.id);localStorage.setItem("luach_last_ping_id",lastPingId);if(data.settings.livePingChime)chime("ping")}if(data.settings.screensaverEnabled&&!calm&&!data.livePing&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd)){const idle=Date.now()-lastActivity;if(idle>Number(data.settings.screensaverMinutes||5)*60000&&!screensaver){screensaver=true;render()}}}
 
@@ -1608,7 +1605,7 @@ function passiveMessage(){
     el=document.createElement("div");
     el.id="passiveFlash";
     el.className="passiveFlash";
-    el.textContent="הכול בסדר. אין צורך ללחוץ.";
+    el.textContent="הכול בסדר, הלוח פתוח ועובד.";
     document.body.appendChild(el);
   }
   el.classList.add("show");
@@ -1630,6 +1627,8 @@ document.addEventListener("click",e=>{
 
 function normalizeYouTubeUrl(url){
   url=String(url||"").trim();
+  const srcMatch=url.match(/src=["\']([^"\']+)["\']/i);
+  if(srcMatch)url=srcMatch[1].replaceAll("&amp;","&");
   if(!url)return "";
   try{
     const u=new URL(url);
@@ -1674,7 +1673,7 @@ function touchLockToast(){
       el=document.createElement("div");
       el.id="touchLockToast";
       el.className="passiveFlash";
-      el.textContent="הכל בסדר, אין צורך ללחוץ על המסך ❤️";
+      el.textContent="הכול בסדר, הלוח פתוח ועובד ❤️";
       document.body.appendChild(el);
     }
     el.classList.add("show");
@@ -1751,7 +1750,7 @@ document.addEventListener("click",e=>{
   handleOverlayButtonAction(b.dataset.a,b,e);
 },true);
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="music"||a==="openMusic"){openMusicUrl();return}if(a==="openMusicExternal"){openMusicExternal();return}if(a==="closeMusic"){music=false;window.__musicEmbedUrl="";stopPatientAudio();render();return}if(a==="stopAudio"){stopPatientAudio();return}if(a==="playNightVoice"){playFamilyVoice("night",nightText())}if(a==="calm"){stopPatientAudio();calm=true;render();speakCalm()}if(a==="closeCalm"){calm=false;stopPatientAudio();render()}if(a==="speak")speakCalm();if(a==="print")print();if(a==="full"||a==="fullscreen"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}if(a==="done"){const id=Number(b.dataset.id);data.schedule=data.schedule.map(x=>x.id===id?{...x,done:!x.done}:x);save();render()}if(a==="ackPing"){if(data.livePing){data.livePing.ack=true;save();render()}}if(a==="showDay"||a==="dayView"){forceDayUntil=Date.now()+180000;render()}if(a==="closeMem"){screensaver=false;markActivity();render()}})
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="music"||a==="openMusic"){openMusicUrl();return}if(a==="openMusicExternal"){openMusicExternal();return}if(a==="closeMusic"){music=false;window.__musicEmbedUrl="";stopPatientAudio();render();return}if(a==="stopAudio"){stopPatientAudio();return}if(a==="playNightVoice"){playFamilyVoice("night",nightText())}if(a==="calm"){stopPatientAudio();calm=true;render();speakCalm()}if(a==="closeCalm"){calm=false;stopPatientAudio();render()}if(a==="speak")speakCalm();if(a==="print")print();if(a==="full"||a==="fullscreen"){try{if(!document.fullscreenElement)await (document.getElementById("app")||document.documentElement).requestFullscreen();else await document.exitFullscreen()}catch{}}if(a==="done"){const id=Number(b.dataset.id);data.schedule=data.schedule.map(x=>x.id===id?{...x,done:!x.done}:x);save();render()}if(a==="ackPing"){if(data.livePing){data.livePing.ack=true;save();render()}}if(a==="showDay"||a==="dayView"){forceDayUntil=Date.now()+180000;render()}if(a==="closeMem"){screensaver=false;markActivity();render()}})
 
 
 let __lastPatientMinuteKey="";

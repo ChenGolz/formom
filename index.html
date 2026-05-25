@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>השעון המשפחתי — קישור אחד</title>
+<title>השעון המשפחתי - קישור אחד</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap");
 *{box-sizing:border-box}
@@ -316,7 +316,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-fragment-key-ux-v24");
+  url.searchParams.set("v","quality-fixes-v24");
   addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
@@ -325,7 +325,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","security-fragment-key-ux-v24");
+  params.set("v","quality-fixes-v24");
   addPrivateParams(params);
   return base+"?"+params.toString();
 }
@@ -345,7 +345,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-fragment-key-ux-v24");
+  url.searchParams.set("v","quality-fixes-v24");
   addPrivateParams(url.searchParams);
   return url.toString();
 }
@@ -367,7 +367,7 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","security-fragment-key-ux-v24");
+  url.searchParams.set("v","quality-fixes-v24");
   addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }
@@ -424,7 +424,7 @@ function joinBoard(){
 }
 function portal(){
   const missing=!hasOwnerCloud();
-  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וגם מפתח גישה פרטי בתוך הקישור.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button><div class="card"><h2>חיבור פרטי למשפחה אחרת</h2><p>אם חבר/ה רוצים שהכול יישמר רק בגוגל שלהם, מדביקים כאן Web App URL של Apps Script ותיקיית Drive שלהם. קישור רגיל לגוגל שיט לא מספיק.</p><input id="privateCloudUrl" placeholder="Google Apps Script Web App URL" dir="ltr" value="${esc(currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?currentCloudUrl():"")}"><input id="privateDriveFolder" placeholder="קישור או Folder ID של תיקיית Drive להקלטות" dir="ltr" value="${esc(currentDriveFolder())}"><button type="button" class="bigBtn green" onclick="savePrivateCloudSetup()">שמירת חיבור פרטי</button><button type="button" class="bigBtn" onclick="clearPrivateCloudSetup()">ניקוי חיבור פרטי מהמכשיר</button></div></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
+  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וגם מפתח גישה פרטי בתוך הקישור.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button><div class="card"><h2>חיבור פרטי למשפחה אחרת</h2><p>אם חבר/ה רוצים שהכול יישמר רק בגוגל שלהם, מדביקים כאן Web App URL של Apps Script ותיקיית Drive שלהם. קישור רגיל לגוגל שיט לא מספיק.</p><input id="privateCloudUrl" placeholder="Google Apps Script Web App URL" dir="ltr" value="${esc(currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?currentCloudUrl():"")}"><input id="privateDriveFolder" placeholder="קישור או Folder ID של תיקיית Drive להקלטות" dir="ltr" value="${esc(currentDriveFolder())}"><button type="button" class="bigBtn green" onclick="savePrivateCloudSetup()">שמירת חיבור פרטי</button><button type="button" class="bigBtn" onclick="clearPrivateCloudSetup()">ניקוי חיבור פרטי מהמכשיר</button></div></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ - יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
 }
 function appShell(){
   const board=currentBoard();
@@ -493,6 +493,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* V24_SECURITY_ACCESS_KEY_PATCH_INDEX */
 
 /* V24_SECURITY_FRAGMENT_KEY_UX_PATCH_INDEX */
+
+/* V24_QUALITY_FIXES_PATCH_INDEX */
 </script>
 </body>
 </html>
