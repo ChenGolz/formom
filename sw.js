@@ -1,10 +1,11 @@
-const CACHE_NAME="family-clock-v13-stability-whatsapp";
+const CACHE_NAME="family-clock-stable-ui-v14";
 const CORE_FILES=[
   "./",
   "./index.html",
   "./patient.html",
   "./backoffice/",
   "./backoffice/index.html",
+  "./boindex.html",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -13,7 +14,11 @@ const CORE_FILES=[
 ];
 
 self.addEventListener("install",event=>{
-  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_FILES)).then(()=>self.skipWaiting()));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache=>Promise.all(CORE_FILES.map(file=>cache.add(file).catch(err=>console.warn("cache skip",file,err)))))
+      .then(()=>self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate",event=>{
