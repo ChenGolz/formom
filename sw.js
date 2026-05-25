@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v23-perfect-pwa-router";
+const CACHE_NAME="family-clock-v24-overlay-buttons-fix";
 
 const CORE_FILES=[
   "./",
@@ -76,3 +76,5 @@ self.addEventListener("fetch",event=>{
 });
 
 /* PERFECT_PWA_ROUTER_V23_SW */
+
+/* OVERLAY_BUTTONS_FIX_V24_SW */

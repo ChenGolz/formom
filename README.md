@@ -580,3 +580,26 @@ Ctrl+U ולחפש:
 - backoffice/index.html
 - boindex.html
 - sw.js
+
+
+---
+
+# V24 — תיקון כפתורים בחלונות קופצים
+
+תוקן:
+- כפתורי `עצירת קול`, `הבנתי, לחזור לשעון`, `הקריאי לי שוב`, `הבנתי ❤️` ו-`סגירה`
+  בתוך חלונות קופצים כבר לא נחסמים על ידי `event.stopPropagation()`.
+- נוספה האזנה בשלב capture לפני שהחלון הפנימי עוצר את הלחיצה.
+- נוספה הגנה נוספת ל-`onclick` של חלונות קופצים כדי שלא יחסום כפתורים, קישורים, אודיו או iframe.
+- נשמרו תיקוני V23 ל-PWA ול-router.
+
+בדיקה:
+Ctrl+U ולחפש:
+`OVERLAY_BUTTONS_FIX_V24_PATIENT`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js
