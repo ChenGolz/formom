@@ -1,4 +1,4 @@
-const CACHE_NAME="luach-pwa-v2-calm-fix";
+const CACHE_NAME="family-clock-full-drive-voice-v1";
 const CORE_FILES=[
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const CORE_FILES=[
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./assets/calm-background.svg",
   "./favicon.ico"
 ];
 

@@ -529,6 +529,11 @@ html,body,button,input,textarea,select{
   object-fit:cover;
 }
 
+
+.driveBox{background:#eef7ff;border:2px solid #cce2f7;border-radius:24px;padding:16px;margin-top:14px}
+.driveBox h3{font-size:26px;margin:0 0 8px;color:#173653}
+.driveBox p{font-size:19px;color:#4d6e8e;font-weight:850;line-height:1.35}
+
 @media(max-width:1050px){.hero-grid,.grid2,.grid3,.wide,.nowgrid,.familygrid,.summary,.contacttop,.qr{grid-template-columns:1fr}.clock-card{min-width:0}.formgrid,.formgrid.three,.checkgrid{grid-template-columns:1fr}.month{gap:5px}.day{min-height:100px;padding:6px}}
 @media print{.no-print,.nav,.tabs,.actions,.footer,.details,.status{display:none!important}.shell{max-width:none;padding:0}.card,.hero{box-shadow:none;break-inside:avoid}body{background:white!important;color:#24312f!important}}
 </style><link rel="manifest" href="../manifest.json">
@@ -594,6 +599,7 @@ const DEFAULT={
   settings:{screensaverEnabled:true,screensaverMinutes:5,memoryIntervalSeconds:12,anchorChime:true,livePingChime:true,nightModeEnabled:true,nightStart:"22:00",nightEnd:"06:00",wakeLockEnabled:true,weatherEnabled:true,weatherLat:"32.0853",weatherLon:"34.7818",weatherCity:"תל אביב",weatherAutoFromProfile:true,musicUrl:"",musicButtonLabel:"לשמוע שירים שאני אוהבת",heartbeatEnabled:true,patientPassiveLock:true},
   livePing:null,
   voiceRecordings:{calm:"",confused:"",night:""},
+  voiceStorage:{mode:"owner",folderId:"",maxSeconds:45},
   person:{firstName:"רחל",fullName:"רחל כהן",address:"רחוב הדוגמה 10, דירה 4",city:"תל אביב",safeMessage:"זה הבית שלי. המשפחה יודעת איפה אני. אין צורך לצאת לבד. אם אני צריכה עזרה, אפשר להתקשר לנועה.",identityNote:"אני רחל. אני אהובה. המשפחה שלי דואגת לי ומתקשרת אליי. היום אפשר להתקדם לאט, דבר אחד בכל פעם.",calmingTips:"מוזיקה שקטה, תה, תמונות משפחה ושיחה קצרה עם נועה.",riskNotes:"רעש, חושך, רעב, כאב או יותר מדי אנשים עלולים לבלבל."},
   schedule:[{id:1,time:"08:00",text:"לקום, לשטוף פנים ולהתלבש",image:"☀️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:2,time:"09:00",text:"ארוחת בוקר",image:"🍳",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:3,time:"10:30",text:"שיחה קצרה עם המשפחה",image:"📞",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:4,time:"13:00",text:"ארוחת צהריים",image:"🍲",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:5,time:"16:00",text:"מנוחה / טלוויזיה / מוזיקה רגועה",image:"🎵",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:6,time:"19:00",text:"ארוחת ערב",image:"🍽️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:7,time:"21:00",text:"התארגנות לשינה",image:"🌙",days:[0,1,2,3,4,5,6],forPatient:true,done:false}],
   medications:[{id:1,time:"08:30",name:"תרופת בוקר",dose:"לפי מרשם",instructions:"אחרי אוכל",taken:false,givenBy:"",notes:""},{id:2,time:"20:30",name:"תרופת ערב",dose:"לפי מרשם",instructions:"לפני שינה",taken:false,givenBy:"",notes:""}],
@@ -869,7 +875,7 @@ function select(label,path,val,opts){return`<label>${esc(label)}<select data-pat
 function boolSelect(label,path,val){return select(label,path,String(!!val),[["true","פעיל"],["false","כבוי"]])}
 function profile(){const p=data.person;return`<section class="section card">${title("❤️","פרופיל אישי","קובע את הטון והמידע המרגיע במסך")}<div class="formgrid">${input("שם פרטי","person.firstName",p.firstName)}${input("שם מלא","person.fullName",p.fullName)}${input("כתובת","person.address",p.address)}${input("עיר / יישוב","person.city",p.city)}${select("שלב תצוגה","stage",data.stage,[["early","עצמאות חלקית — יותר מידע"],["middle","בלבול בינוני — עכשיו/הבא"],["advanced","מתקדם — מינימום מידע"]])}${textarea("משפט מרגיע על הבית","person.safeMessage",p.safeMessage)}${textarea("משפט זהות / משפחה","person.identityNote",p.identityNote)}${textarea("מה מרגיע אותה?","person.calmingTips",p.calmingTips)}${textarea("טריגרים / דברים מלחיצים","person.riskNotes",p.riskNotes)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="updateWeatherFromProfile">🌤️ עדכון מזג אוויר לפי עיר/יישוב המטופל/ת</button></div></section>`}
 function live(){return`<section class="section card green">${title("💚","Live Ping — הודעה מיידית למסך","הודעה גדולה, רגועה וברורה שתופיע אצל המטופלת")}<div class="formgrid"><label>הודעה לשליחה<textarea id="pingText" placeholder="סבתא, אני בדרך אלייך, מגיעה עוד 5 דקות!"></textarea></label><label>משך הצגה בדקות<input id="pingMinutes" type="number" value="5" min="1" max="30"></label></div><div class="actions"><button class="btn green" data-a="sendPing">שליחת הודעה עכשיו</button><button class="btn rose" data-a="clearPing">הסרת הודעה פעילה</button></div>${data.livePing&&!data.livePing.ack?`<div class="notice">הודעה פעילה: ${esc(data.livePing.message)}</div>`:""}</section>`}
-function settings(){const s=data.settings;return`<section class="section card lav">${title("✨","הגדרות חכמות","שומר מסך, צלילים, מזג אוויר, מוזיקה ומצב לילה מוחלט")}<div class="weatherCityBox"><h3>🌤️ מזג אוויר לפי עיר</h3><p>אפשר להשתמש אוטומטית בעיר/יישוב של המטופל/ת מהפרופיל, למשל “רוחמה”. אפשר גם להקליד עיר ידנית כאן. המערכת תמצא לבד קו רוחב/אורך ותציג מזג אוויר לפי המיקום שנבחר.</p><div class="formgrid"><label>עיר למזג אוויר<input data-path="settings.weatherCity" id="weatherCityInput" value="${esc(s.weatherCity||"")} placeholder="לדוגמה: תל אביב, חיפה, ירושלים, London"></label><label>חיווי מזג אוויר<select data-path="settings.weatherEnabled"><option value="true" ${s.weatherEnabled?"selected":""}>פעיל</option><option value="false" ${!s.weatherEnabled?"selected":""}>כבוי</option></select></label></div><div class="actions"><button class="btn blue" data-a="updateWeatherFromProfile">לפי עיר/יישוב המטופל/ת</button><button class="btn blue" data-a="setWeatherCity">עדכון לפי העיר שהוקלדה כאן</button><button class="btn soft" data-a="saveInputs">שמירה רגילה</button></div><div class="small">מיקום נוכחי: ${esc(s.weatherCity||"לא הוגדר")} · Lat ${esc(s.weatherLat||"")} · Lon ${esc(s.weatherLon||"")}</div></div><div class="formgrid">${boolSelect("מזג אוויר לפי עיר/יישוב המטופל/ת","settings.weatherAutoFromProfile",s.weatherAutoFromProfile)}${boolSelect("שומר מסך זיכרונות","settings.screensaverEnabled",s.screensaverEnabled)}${input("אחרי כמה דקות ללא מגע","settings.screensaverMinutes",s.screensaverMinutes,"number")}${input("כל כמה שניות להחליף זיכרון","settings.memoryIntervalSeconds",s.memoryIntervalSeconds,"number")}${boolSelect("מצב פסיבי למסך המטופל/ת","settings.patientPassiveLock",s.patientPassiveLock)}${boolSelect("Wake Lock — להשאיר מסך דלוק","settings.wakeLockEnabled",s.wakeLockEnabled)}${input("קו רוחב Latitude","settings.weatherLat",s.weatherLat)}${input("קו אורך Longitude","settings.weatherLon",s.weatherLon)}${boolSelect("צליל עדין בחילופי משימות","settings.anchorChime",s.anchorChime)}${boolSelect("צליל בהודעה מיידית","settings.livePingChime",s.livePingChime)}${boolSelect("מצב לילה מוחלט","settings.nightModeEnabled",s.nightModeEnabled)}${input("תחילת לילה","settings.nightStart",s.nightStart,"time")}${input("סוף לילה","settings.nightEnd",s.nightEnd,"time")}${input("קישור YouTube לשירים","settings.musicUrl",s.musicUrl||"")}${input("טקסט כפתור מוזיקה","settings.musicButtonLabel",s.musicButtonLabel||"לשמוע שירים שאני אוהבת")}${boolSelect("Heartbeat לענן","settings.heartbeatEnabled",s.heartbeatEnabled)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="testChime">בדיקת צליל</button></div></section>`}
+function settings(){const s=data.settings;return`<section class="section card lav">${title("✨","הגדרות חכמות","שומר מסך, צלילים, מזג אוויר, מוזיקה ומצב לילה מוחלט")}<div class="weatherCityBox"><h3>🎵 מוזיקה מרגיעה</h3><p>אפשר להדביק קישור לפלייליסט YouTube שאת יוצרת. במסך המטופל/ת יופיע כפתור מוזיקה פשוט. מומלץ לבחור שירים מוכרים, שקטים, מתקופת הנעורים או המשפחה.</p></div><div class="weatherCityBox"><h3>🌤️ מזג אוויר לפי עיר</h3><p>אפשר להשתמש אוטומטית בעיר/יישוב של המטופל/ת מהפרופיל, למשל “רוחמה”. אפשר גם להקליד עיר ידנית כאן. המערכת תמצא לבד קו רוחב/אורך ותציג מזג אוויר לפי המיקום שנבחר.</p><div class="formgrid"><label>עיר למזג אוויר<input data-path="settings.weatherCity" id="weatherCityInput" value="${esc(s.weatherCity||"")} placeholder="לדוגמה: תל אביב, חיפה, ירושלים, London"></label><label>חיווי מזג אוויר<select data-path="settings.weatherEnabled"><option value="true" ${s.weatherEnabled?"selected":""}>פעיל</option><option value="false" ${!s.weatherEnabled?"selected":""}>כבוי</option></select></label></div><div class="actions"><button class="btn blue" data-a="updateWeatherFromProfile">לפי עיר/יישוב המטופל/ת</button><button class="btn blue" data-a="setWeatherCity">עדכון לפי העיר שהוקלדה כאן</button><button class="btn soft" data-a="saveInputs">שמירה רגילה</button></div><div class="small">מיקום נוכחי: ${esc(s.weatherCity||"לא הוגדר")} · Lat ${esc(s.weatherLat||"")} · Lon ${esc(s.weatherLon||"")}</div></div><div class="formgrid">${boolSelect("מזג אוויר לפי עיר/יישוב המטופל/ת","settings.weatherAutoFromProfile",s.weatherAutoFromProfile)}${boolSelect("שומר מסך זיכרונות","settings.screensaverEnabled",s.screensaverEnabled)}${input("אחרי כמה דקות ללא מגע","settings.screensaverMinutes",s.screensaverMinutes,"number")}${input("כל כמה שניות להחליף זיכרון","settings.memoryIntervalSeconds",s.memoryIntervalSeconds,"number")}${boolSelect("מצב פסיבי למסך המטופל/ת","settings.patientPassiveLock",s.patientPassiveLock)}${boolSelect("Wake Lock — להשאיר מסך דלוק","settings.wakeLockEnabled",s.wakeLockEnabled)}${input("קו רוחב Latitude","settings.weatherLat",s.weatherLat)}${input("קו אורך Longitude","settings.weatherLon",s.weatherLon)}${boolSelect("צליל עדין בחילופי משימות","settings.anchorChime",s.anchorChime)}${boolSelect("צליל בהודעה מיידית","settings.livePingChime",s.livePingChime)}${boolSelect("מצב לילה מוחלט","settings.nightModeEnabled",s.nightModeEnabled)}${input("תחילת לילה","settings.nightStart",s.nightStart,"time")}${input("סוף לילה","settings.nightEnd",s.nightEnd,"time")}${input("קישור YouTube / פלייליסט לשירים","settings.musicUrl",s.musicUrl||"")}${input("טקסט כפתור מוזיקה במסך המטופל/ת","settings.musicButtonLabel",s.musicButtonLabel||"לשמוע שירים שאני אוהבת")}${boolSelect("Heartbeat לענן","settings.heartbeatEnabled",s.heartbeatEnabled)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="testChime">בדיקת צליל</button></div></section>`}
 
 function daysPicker(days=[]){const names=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];if(!Array.isArray(days))days=[0,1,2,3,4,5,6];return`<div class="daysPicker" data-days>${names.map((n,i)=>`<label class="dayChip"><input type="checkbox" value="${i}" ${days.includes(i)?"checked":""}>${n}</label>`).join("")}</div>`}
 
@@ -911,9 +917,26 @@ function book(){const fam=data.family.slice(0,6);return`<section class="section 
 function cloud(){const links=boardLinksFor(CLOUD.boardId||"");return`<section class="section card blue">${title("☁️","קישורי המשפחה וסנכרון","כאן מעתיקים שוב את הקישורים הייחודיים של המשפחה.")}<div class="medium"><p><strong>מצב סנכרון:</strong> ${cloudOn()?"פעיל ✅":"לא פעיל"}</p><p><strong>Family ID:</strong> ${esc(CLOUD.boardId||"לא נבחר")}</p><p>אין כאן שום הגדרה טכנית למשתמשים. כל משפחה צריכה רק לשמור את שני הקישורים שלה.</p></div><div class="portalLinksNice"><div class="portalLinkCard"><h3>קישור לטאבלט / לוח המטופל/ת</h3><p>פותחים בטאבלט של המטופל/ת ומשאירים פתוח.</p><code>${esc(links.patient||"")}</code></div><div class="portalLinkCard"><h3>קישור ל-Backoffice / עריכה</h3><p>פותחים במחשב או בטלפון של המשפחה כדי לעדכן מידע.</p><code>${esc(links.backoffice||"")}</code></div><button class="btn soft portalBigButton" data-a="copyLinks">העתקת שני הקישורים</button></div><div class="actions"><button class="btn blue" data-a="createBoard">יצירת לוח חדש נוסף</button><button class="btn green" data-a="testCloud">בדיקת סנכרון</button></div><details class="details" style="margin-top:16px"><summary>מידע למנהלת האתר בלבד</summary><div class="medium"><p>כדי שהמשתמשים לא יצטרכו שום הגדרה טכנית, מנהלת האתר צריכה להדביק פעם אחת את כתובת ה-Web App בשני הקבצים:</p><pre style="direction:ltr;text-align:left;background:white;color:#24312f;border-radius:18px;padding:16px;overflow:auto">const OWNER_APPS_SCRIPT_URL=""</pre><p>אחרי שזה מוגדר, המשתמשים רואים רק יצירת לוח וקבלת קישורים.</p></div></details></section>`}
 function preview(){const meds=data.medications.filter(m=>m.taken).length,water=["waterMorning","waterNoon","waterEvening"].filter(k=>data.care[k]).length;return`<section class="section card blue"><div class="summary"><div class="summarybox"><div class="small">מצב תצוגה</div><div class="big2">${esc(data.stage)}</div></div><div class="summarybox"><div class="small">משימות</div><div class="big2">${data.schedule.length}</div></div><div class="summarybox"><div class="small">תרופות שסומנו</div><div class="big2">${meds}/${data.medications.length}</div></div><div class="summarybox"><div class="small">שתייה</div><div class="big2">${water}/3</div></div></div></section>`}
 
+
+async function postToAppsScript(payload){
+  if(!cloudOn())throw new Error("אין חיבור לענן");
+  await fetch(apiBase(),{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload)
+  });
+}
+function folderIdFromUrl(value){
+  value=String(value||"").trim();
+  const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m?m[1]:value;
+}
+
 let voiceRecorder=null;
 let voiceChunks=[];
 let voiceRecordingKey="";
+let voiceStopTimer=null;
 function voiceLabel(key){return ({calm:"הודעת הרגעה",confused:"הודעת בלבול",night:"הודעת לילה"})[key]||key}
 function voiceHint(key){
   if(key==="calm")return `מומלץ להקליט: שלום ${data.person.firstName}, הכול בסדר. את בבית. את בטוחה. אנחנו אוהבים אותך ושומרים עלייך.`;
@@ -922,34 +945,89 @@ function voiceHint(key){
   return "";
 }
 function voiceHas(key){return !!(data.voiceRecordings&&data.voiceRecordings[key])}
+function voiceSize(key){const s=data.voiceRecordings&&data.voiceRecordings[key];return s?Math.round(s.length/1024):0}
 function voice(){
   data.voiceRecordings=data.voiceRecordings||{calm:"",confused:"",night:""};
+  data.voiceStorage=data.voiceStorage||{mode:"owner",folderId:"",maxSeconds:45};
+  const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
-  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)?`<audio class="voiceAudio" controls src="${data.voiceRecordings[key]}"></audio>`:""}<div class="actions"><button class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
-  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות בתוך נתוני הלוח ומסתנכרנות לטאבלט. במסך המטופל/ת מצב ההרגעה ישמיע קודם את הקול המשפחתי. אם אין הקלטה, המערכת תחזור לקריאת הבוט.</p><p><strong>טיפ:</strong> להקליט במקום שקט, לדבר לאט, חם וברור, ולשמור משפט קצר של 10–20 שניות.</p></div>${blocks}</section>`;
+  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${data.voiceRecordings[key]}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
+  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.</div>${blocks}</section>`;
 }
 async function startVoice(key){
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert("הדפדפן הזה לא תומך בהקלטה. נסי Chrome/Edge ועדיף HTTPS.");return}
     if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop();
+    saveInputs();
+    data.voiceStorage=data.voiceStorage||{mode:"owner",folderId:"",maxSeconds:45};
+    const maxSeconds=Math.max(5,Math.min(90,Number(data.voiceStorage.maxSeconds||45)));
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     voiceChunks=[];voiceRecordingKey=key;
     const mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"audio/webm";
-    voiceRecorder=new MediaRecorder(stream,{mimeType:mime});
+    let opts={mimeType:mime,audioBitsPerSecond:16000};
+    try{voiceRecorder=new MediaRecorder(stream,opts)}catch{voiceRecorder=new MediaRecorder(stream,{mimeType:mime})}
     voiceRecorder.ondataavailable=e=>{if(e.data&&e.data.size)voiceChunks.push(e.data)};
     voiceRecorder.onstop=()=>{
+      clearTimeout(voiceStopTimer);
       stream.getTracks().forEach(t=>t.stop());
       const blob=new Blob(voiceChunks,{type:mime});
       const reader=new FileReader();
-      reader.onload=()=>{data.voiceRecordings=data.voiceRecordings||{};data.voiceRecordings[key]=reader.result;voiceRecordingKey="";save();render()};
+      reader.onload=async()=>{
+        const result=reader.result;
+        try{
+          showStatus("שומרת הקלטה בדרייב...");
+          const folderId=data.voiceStorage.mode==="family"?folderIdFromUrl(data.voiceStorage.folderId):"";
+          await postToAppsScript({action:"saveAudio",boardId:CLOUD.boardId,key,dataUrl:result,folderId});
+          data.voiceRecordings=data.voiceRecordings||{};
+          data.voiceRecordings[key]="drive:"+Date.now();
+          save();
+          showStatus("ההקלטה נשמרה בדרייב");
+          setTimeout(()=>pullCloud().finally(()=>render()),1400);
+        }catch(err){
+          alert("לא הצלחתי לשמור את ההקלטה בדרייב. בדקי הרשאות Apps Script ותיקיית Drive.");
+          voiceRecordingKey="";
+          render();
+        }
+      };
       reader.readAsDataURL(blob);
     };
-    voiceRecorder.start();render();
-  }catch(err){voiceRecordingKey="";render();alert("לא הצלחתי לפתוח מיקרופון. צריך לאשר הרשאת מיקרופון בדפדפן.")}
+    voiceRecorder.start(1000);
+    voiceStopTimer=setTimeout(()=>stopVoice(),maxSeconds*1000);
+    render();
+  }catch(err){
+    voiceRecordingKey="";
+    render();
+    alert("לא הצלחתי לפתוח מיקרופון. צריך לאשר הרשאת מיקרופון בדפדפן.");
+  }
 }
 function stopVoice(){if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop()}
-function playVoice(key){const src=data.voiceRecordings&&data.voiceRecordings[key];if(!src)return alert("אין הקלטה שמורה עדיין");new Audio(src).play()}
-function deleteVoice(key){if(!confirm("למחוק את ההקלטה?"))return;data.voiceRecordings=data.voiceRecordings||{};data.voiceRecordings[key]="";save();render()}
+async function playVoice(key){
+  const src=data.voiceRecordings&&data.voiceRecordings[key];
+  if(!src)return alert("אין הקלטה שמורה עדיין");
+  if(String(src).startsWith("drive:")){
+    const payload=await new Promise((resolve,reject)=>{
+      const cb="bo_audio_"+Date.now()+"_"+Math.floor(Math.random()*99999);
+      const script=document.createElement("script");
+      const sep=apiBase().includes("?")?"&":"?";
+      window[cb]=(p)=>{delete window[cb];script.remove();resolve(p)};
+      script.onerror=()=>{delete window[cb];script.remove();reject(new Error("audio failed"))};
+      script.src=`${apiBase()}${sep}action=audio&board=${encodeURIComponent(CLOUD.boardId)}&key=${encodeURIComponent(key)}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
+      document.head.appendChild(script);
+    });
+    if(payload&&payload.ok&&payload.dataUrl)new Audio(payload.dataUrl).play();
+    else alert("לא הצלחתי לטעון את ההקלטה מהדרייב");
+    return;
+  }
+  new Audio(src).play();
+}
+async function deleteVoice(key){
+  if(!confirm("למחוק את ההקלטה?"))return;
+  try{await postToAppsScript({action:"deleteAudio",boardId:CLOUD.boardId,key})}catch(e){}
+  data.voiceRecordings=data.voiceRecordings||{};
+  data.voiceRecordings[key]="";
+  save();
+  render();
+}
 
 function content(){return({profile,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud}[tab]||profile)()}
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
@@ -1094,4 +1172,6 @@ if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("../sw.js").catch(()=>{}));
 }
 
+
+/* FULL_VOICE_BACKOFFICE_FIX_V4 */
 </script></body></html>

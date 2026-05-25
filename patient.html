@@ -481,6 +481,15 @@ html,body,button,input,textarea,select{
 
 @media(max-width:1050px){.hero-grid,.grid2,.grid3,.wide,.nowgrid,.familygrid,.summary,.contacttop,.qr{grid-template-columns:1fr}.clock-card{min-width:0}.formgrid,.formgrid.three,.checkgrid{grid-template-columns:1fr}.month{gap:5px}.day{min-height:100px;padding:6px}}
 @media print{.no-print,.nav,.tabs,.actions,.footer,.details,.status{display:none!important}.shell{max-width:none;padding:0}.card,.hero{box-shadow:none;break-inside:avoid}body{background:white!important;color:#24312f!important}}
+
+/* רקע מרגיע ועדין */
+body{
+  background-image:url('./assets/calm-background.svg') !important;
+  background-size:cover !important;
+  background-attachment:fixed !important;
+  background-position:center !important;
+}
+
 </style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -666,7 +675,38 @@ function startCloudSync(){
 startCloudSync();
 window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){data=load();render&&render();showStatus("עודכן")}})
 
-function playFamilyVoice(key, fallbackText=""){
+
+function jsonpAudio(key){
+  return new Promise((resolve,reject)=>{
+    if(!cloudOn())return resolve(null);
+    const cb="luach_audio_"+Date.now()+"_"+Math.floor(Math.random()*999999);
+    const script=document.createElement("script");
+    const sep=apiBase().includes("?")?"&":"?";
+    window[cb]=(payload)=>{delete window[cb];script.remove();resolve(payload)};
+    script.onerror=()=>{delete window[cb];script.remove();reject(new Error("audio jsonp failed"))};
+    script.src=`${apiBase()}${sep}action=audio&board=${encodeURIComponent(safeBoardId())}&key=${encodeURIComponent(key)}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
+    document.head.appendChild(script);
+  });
+}
+async function resolveFamilyVoiceSource(key){
+  const src=await resolveFamilyVoiceSource(key);
+  if(!src)return "";
+  if(String(src).startsWith("drive:")){
+    try{
+      if(!window.__audioCache)window.__audioCache={};
+      if(window.__audioCache[key])return window.__audioCache[key];
+      const payload=await jsonpAudio(key);
+      if(payload&&payload.ok&&payload.dataUrl){
+        window.__audioCache[key]=payload.dataUrl;
+        return payload.dataUrl;
+      }
+    }catch(e){}
+    return "";
+  }
+  return src;
+}
+
+async function playFamilyVoice(key, fallbackText=""){
   const src=data.voiceRecordings&&data.voiceRecordings[key];
   if(src){
     try{
@@ -984,4 +1024,6 @@ if("serviceWorker" in navigator){
 
 
 /* PASSIVE_CALM_FIX_V1 */
+
+/* FULL_VOICE_PATIENT_FIX_V4 */
 </script></body></html>

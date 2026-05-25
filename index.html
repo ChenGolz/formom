@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>השעון המשפחתי — קישור אחד</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap");
@@ -103,8 +102,9 @@ iframe{width:100%;height:calc(100vh - 76px);border:0;display:block;background:wh
 <script>
 const OWNER_APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz21NkWRs7yqe5ao_VwEVzURXGn_2IVSwzOQINumgHk48-S0C2XW5PeOyeqeCJcdS-K/exec';
 const OWNER_DEFAULT_POLL_MS=60000;
-const ONE_LINK_BOARD_KEY="luach_one_link_board_v3";
-const ONE_LINK_MODE_KEY="luach_one_link_mode_v3";
+const ONE_LINK_BOARD_KEY="family_clock_board_v4";
+const ONE_LINK_MODE_KEY="family_clock_mode_v4";
+const HOME_HELP_KEY="family_clock_home_help_seen_v2";
 
 function hasOwnerCloud(){return !!OWNER_APPS_SCRIPT_URL}
 function getParams(){return new URLSearchParams(location.search)}
@@ -140,34 +140,26 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
+  params.set("v","voice-fix-v4");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
   const board=currentBoard();
   if(!board)return render();
-
-const HOME_HELP_KEY="family_clock_home_help_seen_v1";
-function showHomeHelp(){
-  if(localStorage.getItem(HOME_HELP_KEY))return;
-  const div=document.createElement("div");
-  div.className="homeHelp";
-  div.innerHTML=`<div class="homeHelpBox"><h2>להפוך את זה לשעון במסך מלא</h2><p>לא צריך להוריד דף משפחתי. אפשר פשוט להוסיף את הקישור למסך הבית, כדי שייפתח נקי וברור כמו שעון קיר.</p><div class="homeHelpGrid"><div class="homeHelpCard"><div class="homeHelpIcon">📤</div><strong>באייפון / אייפד</strong><span>לחצו על כפתור השיתוף ואז “הוסף למסך הבית”.</span></div><div class="homeHelpCard"><div class="homeHelpIcon">⋮</div><strong>באנדרואיד / Chrome</strong><span>לחצו על תפריט שלוש הנקודות ואז “הוסף למסך הבית”.</span></div></div><button type="button" class="bigBtn" id="homeHelpOk">הבנתי, להמשיך</button></div>`;
-  document.body.appendChild(div);
-  document.getElementById("homeHelpOk").onclick=()=>{
-    localStorage.setItem(HOME_HELP_KEY,"1");
-    div.remove();
-  };
-}
-setTimeout(showHomeHelp,900);
-
   setTopUrl(board,mode,tab);
   const f=document.getElementById("screenFrame");
   if(f)f.src=frameSrc(mode,board,tab);
   document.querySelectorAll("[data-mode-btn]").forEach(b=>b.classList.toggle("active", b.dataset.modeBtn===mode));
+  document.querySelectorAll("[data-voice-btn]").forEach(b=>b.classList.toggle("active", !!tab && tab==="voice"));
 }
 function openMode(mode){loadFrame(mode,"")}
 function openVoice(){loadFrame("backoffice","voice")}
-
+async function copyOneLink(){
+  const board=currentBoard();
+  const text=oneLink(board);
+  try{await navigator.clipboard.writeText(text);alert("הקישור הועתק ✅")}
+  catch{prompt("העתיקו את הקישור:",text)}
+}
 function sendWhatsappInvite(){
   const board=currentBoard();
   if(!board)return alert("צריך קודם ליצור לוח משפחתי");
@@ -179,13 +171,6 @@ function sendWhatsappInvite(){
     `מאותו קישור אפשר לראות את השעון המשפחתי ולעדכן תמונות, הודעות ושגרה.`
   );
   window.open(`https://wa.me/?text=${text}`,"_blank");
-}
-
-async function copyOneLink(){
-  const board=currentBoard();
-  const text=oneLink(board);
-  try{await navigator.clipboard.writeText(text);alert("הקישור הועתק ✅")}
-  catch{prompt("העתיקו את הקישור:",text)}
 }
 function createBoard(){
   if(!hasOwnerCloud())return render();
@@ -210,13 +195,21 @@ function joinBoard(){
 }
 function portal(){
   const missing=!hasOwnerCloud();
-  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי למשפחה</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וייחודי.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת לוח חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
+  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וייחודי.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
 }
 function appShell(){
   const board=currentBoard();
   const mode=currentMode();
   const tab=currentTab();
-  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" data-mode-btn="patient" onclick="openMode('patient')">👁️ לוח המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" data-mode-btn="backoffice" onclick="openMode('backoffice')">⚙️ Backoffice / ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" onclick="openVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור היחיד</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
+  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" data-mode-btn="patient" onclick="openMode('patient')">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" data-mode-btn="backoffice" onclick="openMode('backoffice')">⚙️ ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" data-voice-btn onclick="openVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
+}
+function showHomeHelp(){
+  if(localStorage.getItem(HOME_HELP_KEY))return;
+  const div=document.createElement("div");
+  div.className="homeHelp";
+  div.innerHTML=`<div class="homeHelpBox"><h2>להפוך את זה לשעון במסך מלא</h2><p>לא צריך להוריד דף משפחתי. אפשר פשוט להוסיף את הקישור למסך הבית, כדי שייפתח נקי וברור כמו שעון קיר.</p><div class="homeHelpGrid"><div class="homeHelpCard"><div class="homeHelpIcon">📤</div><strong>באייפון / אייפד</strong><span>לחצו על כפתור השיתוף ואז “הוסף למסך הבית”.</span></div><div class="homeHelpCard"><div class="homeHelpIcon">⋮</div><strong>באנדרואיד / Chrome</strong><span>לחצו על תפריט שלוש הנקודות ואז “הוסף למסך הבית”.</span></div></div><button type="button" class="bigBtn" id="homeHelpOk">הבנתי, להמשיך</button></div>`;
+  document.body.appendChild(div);
+  document.getElementById("homeHelpOk").onclick=()=>{localStorage.setItem(HOME_HELP_KEY,"1");div.remove()};
 }
 function render(){
   const board=currentBoard();
@@ -224,12 +217,9 @@ function render(){
 }
 window.addEventListener("popstate",render);
 render();
-/* ONE_LINK_NAV_FIX_V3 */
-
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-}
-
+setTimeout(showHomeHelp,900);
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+/* FULL_VOICE_FIX_V4 */
 </script>
 </body>
 </html>
