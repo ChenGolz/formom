@@ -534,6 +534,35 @@ html,body,button,input,textarea,select{
 .driveBox h3{font-size:26px;margin:0 0 8px;color:#173653}
 .driveBox p{font-size:19px;color:#4d6e8e;font-weight:850;line-height:1.35}
 
+
+.saveToast{
+  position:fixed;
+  left:50%;
+  bottom:24px;
+  transform:translateX(-50%);
+  z-index:9999;
+  background:#173653;
+  color:white;
+  border-radius:22px;
+  padding:15px 24px;
+  font-size:23px;
+  font-weight:1000;
+  box-shadow:0 18px 55px rgba(23,54,83,.28);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+}
+.saveToast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.saveToast.ok{background:#1f7a4d}
+.saveToast.warn{background:#945f00}
+.saveToast.err{background:#8b2f2f}
+.weeklyBox{background:#f4faff;border:2px solid #cce2f7;border-radius:24px;padding:16px;margin-top:12px}
+.weeklyDays{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.weeklyDay{display:inline-flex;align-items:center;gap:6px;background:white;border:2px solid #cce2f7;border-radius:999px;padding:8px 12px;font-size:18px;font-weight:900}
+.patientEditMap{background:#eef7ff;border:2px solid #cce2f7;border-radius:24px;padding:16px;margin-top:16px}
+.patientEditMap h3{font-size:26px;margin:0 0 8px}
+.patientEditMap ul{margin:0;padding-inline-start:24px;font-size:19px;font-weight:850;line-height:1.6;color:#4d6e8e}
+
 @media(max-width:1050px){.hero-grid,.grid2,.grid3,.wide,.nowgrid,.familygrid,.summary,.contacttop,.qr{grid-template-columns:1fr}.clock-card{min-width:0}.formgrid,.formgrid.three,.checkgrid{grid-template-columns:1fr}.month{gap:5px}.day{min-height:100px;padding:6px}}
 @media print{.no-print,.nav,.tabs,.actions,.footer,.details,.status{display:none!important}.shell{max-width:none;padding:0}.card,.hero{box-shadow:none;break-inside:avoid}body{background:white!important;color:#24312f!important}}
 </style><link rel="manifest" href="../manifest.json">
@@ -616,7 +645,7 @@ function deepMerge(d,v){if(Array.isArray(d))return Array.isArray(v)?v:clone(d);i
 function load(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?deepMerge(DEFAULT,JSON.parse(raw)):clone(DEFAULT)}catch{return clone(DEFAULT)}}
 let data=load();
 (data.schedule||[]).forEach(x=>{if(!Array.isArray(x.days))x.days=[0,1,2,3,4,5,6]});
-function save(push=true){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(push)debouncePush();showStatus("נשמר")}
+function save(push=true){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(push)debouncePush();showStatus("נשמר ✅")}
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 function today(){return new Date().toISOString().slice(0,10)}
 function two(n){return String(n).padStart(2,"0")}
@@ -642,7 +671,22 @@ function title(icon,t,sub=""){return`<div class="title"><div class="icon">${icon
 function avatar(o,f="❤️"){return o.photo?`<div class="avatar"><img src="${esc(o.photo)}"></div>`:`<div class="avatar">${esc(o.emoji||f)}</div>`}
 function analog(d){const h=d.getHours()%12,m=d.getMinutes(),s=d.getSeconds(),ha=h*30+m*.5,ma=m*6,sa=s*6;let ticks="";for(let i=0;i<12;i++){const a=i*30,r=Math.PI/180*a,x1=60+Math.sin(r)*43,y1=60-Math.cos(r)*43,x2=60+Math.sin(r)*49,y2=60-Math.cos(r)*49;ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`}return`<svg viewBox="0 0 120 120" width="144" height="144"><circle cx="60" cy="60" r="54" fill="white" stroke="currentColor" stroke-width="4" opacity=".95"></circle>${ticks}<line x1="60" y1="60" x2="60" y2="31" stroke="currentColor" stroke-width="6" stroke-linecap="round" transform="rotate(${ha} 60 60)"></line><line x1="60" y1="60" x2="60" y2="20" stroke="currentColor" stroke-width="4" stroke-linecap="round" transform="rotate(${ma} 60 60)"></line><line x1="60" y1="66" x2="60" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".45" transform="rotate(${sa} 60 60)"></line><circle cx="60" cy="60" r="5" fill="currentColor"></circle></svg>`}
 function progress(d){const p=Math.min(100,Math.max(0,(d.getHours()*60+d.getMinutes())/1440*100));return`<div style="margin-top:16px;border-radius:24px;background:#f7f4ee;color:#24312f;padding:14px"><div style="display:flex;justify-content:space-between;font-weight:1000;color:#667774;margin-bottom:8px"><span>בוקר</span><span>צהריים</span><span>ערב</span><span>לילה</span></div><div style="height:18px;border-radius:999px;background:#e7ded2;overflow:hidden"><div style="height:100%;width:${p}%;background:#24312f;border-radius:999px"></div></div><div style="text-align:center;margin-top:8px;font-weight:1000;font-size:20px">ככה היום מתקדם</div></div>`}
-function showStatus(msg){let el=document.getElementById("status");if(!el)return;el.textContent=msg;el.classList.add("show");clearTimeout(showStatus.t);showStatus.t=setTimeout(()=>el.classList.remove("show"),1400)}
+
+function showToast(msg,type="ok"){
+  let el=document.getElementById("saveToast");
+  if(!el){
+    el=document.createElement("div");
+    el.id="saveToast";
+    el.className="saveToast";
+    document.body.appendChild(el);
+  }
+  el.textContent=msg;
+  el.className="saveToast "+type+" show";
+  clearTimeout(showToast.t);
+  showToast.t=setTimeout(()=>el.classList.remove("show"),2600);
+}
+
+function showStatus(msg){try{showToast(String(arguments[0]||"עודכן"),"ok")}catch{}let el=document.getElementById("status");if(!el)return;el.textContent=msg;el.classList.add("show");clearTimeout(showStatus.t);showStatus.t=setTimeout(()=>el.classList.remove("show"),1400)}
 function cloudOn(){return !!(CLOUD.enabled&&CLOUD.appsScriptUrl)}
 function apiBase(){return String(CLOUD.appsScriptUrl||"").trim()}
 function safeBoardId(){return String(CLOUD.boardId||"grandma-home-board")}
@@ -868,7 +912,7 @@ function youtubeEmbed(url){
 
 let now=new Date(),tab=new URLSearchParams(location.search).get("tab")||"profile";
 function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="green" data-a="saveAll">שמירה</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
-function tabs(){const items=[["profile","פרופיל"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
+function tabs(){const items=[["profile","פרופיל"],["map","מפת עריכה"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
 function input(label,path,val,type="text"){return`<label>${esc(label)}<input data-path="${esc(path)}" type="${type}" value="${esc(val)}"></label>`}
 function textarea(label,path,val){return`<label>${esc(label)}<textarea data-path="${esc(path)}">${esc(val)}</textarea></label>`}
 function select(label,path,val,opts){return`<label>${esc(label)}<select data-path="${esc(path)}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(val)===String(o[0])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></label>`}
@@ -878,6 +922,28 @@ function live(){return`<section class="section card green">${title("💚","Live 
 function settings(){const s=data.settings;return`<section class="section card lav">${title("✨","הגדרות חכמות","שומר מסך, צלילים, מזג אוויר, מוזיקה ומצב לילה מוחלט")}<div class="weatherCityBox"><h3>🎵 מוזיקה מרגיעה</h3><p>אפשר להדביק קישור לפלייליסט YouTube שאת יוצרת. במסך המטופל/ת יופיע כפתור מוזיקה פשוט. מומלץ לבחור שירים מוכרים, שקטים, מתקופת הנעורים או המשפחה.</p></div><div class="weatherCityBox"><h3>🌤️ מזג אוויר לפי עיר</h3><p>אפשר להשתמש אוטומטית בעיר/יישוב של המטופל/ת מהפרופיל, למשל “רוחמה”. אפשר גם להקליד עיר ידנית כאן. המערכת תמצא לבד קו רוחב/אורך ותציג מזג אוויר לפי המיקום שנבחר.</p><div class="formgrid"><label>עיר למזג אוויר<input data-path="settings.weatherCity" id="weatherCityInput" value="${esc(s.weatherCity||"")} placeholder="לדוגמה: תל אביב, חיפה, ירושלים, London"></label><label>חיווי מזג אוויר<select data-path="settings.weatherEnabled"><option value="true" ${s.weatherEnabled?"selected":""}>פעיל</option><option value="false" ${!s.weatherEnabled?"selected":""}>כבוי</option></select></label></div><div class="actions"><button class="btn blue" data-a="updateWeatherFromProfile">לפי עיר/יישוב המטופל/ת</button><button class="btn blue" data-a="setWeatherCity">עדכון לפי העיר שהוקלדה כאן</button><button class="btn soft" data-a="saveInputs">שמירה רגילה</button></div><div class="small">מיקום נוכחי: ${esc(s.weatherCity||"לא הוגדר")} · Lat ${esc(s.weatherLat||"")} · Lon ${esc(s.weatherLon||"")}</div></div><div class="formgrid">${boolSelect("מזג אוויר לפי עיר/יישוב המטופל/ת","settings.weatherAutoFromProfile",s.weatherAutoFromProfile)}${boolSelect("שומר מסך זיכרונות","settings.screensaverEnabled",s.screensaverEnabled)}${input("אחרי כמה דקות ללא מגע","settings.screensaverMinutes",s.screensaverMinutes,"number")}${input("כל כמה שניות להחליף זיכרון","settings.memoryIntervalSeconds",s.memoryIntervalSeconds,"number")}${boolSelect("מצב פסיבי למסך המטופל/ת","settings.patientPassiveLock",s.patientPassiveLock)}${boolSelect("Wake Lock — להשאיר מסך דלוק","settings.wakeLockEnabled",s.wakeLockEnabled)}${input("קו רוחב Latitude","settings.weatherLat",s.weatherLat)}${input("קו אורך Longitude","settings.weatherLon",s.weatherLon)}${boolSelect("צליל עדין בחילופי משימות","settings.anchorChime",s.anchorChime)}${boolSelect("צליל בהודעה מיידית","settings.livePingChime",s.livePingChime)}${boolSelect("מצב לילה מוחלט","settings.nightModeEnabled",s.nightModeEnabled)}${input("תחילת לילה","settings.nightStart",s.nightStart,"time")}${input("סוף לילה","settings.nightEnd",s.nightEnd,"time")}${input("קישור YouTube / פלייליסט לשירים","settings.musicUrl",s.musicUrl||"")}${input("טקסט כפתור מוזיקה במסך המטופל/ת","settings.musicButtonLabel",s.musicButtonLabel||"לשמוע שירים שאני אוהבת")}${boolSelect("Heartbeat לענן","settings.heartbeatEnabled",s.heartbeatEnabled)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="testChime">בדיקת צליל</button></div></section>`}
 
 function daysPicker(days=[]){const names=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];if(!Array.isArray(days))days=[0,1,2,3,4,5,6];return`<div class="daysPicker" data-days>${names.map((n,i)=>`<label class="dayChip"><input type="checkbox" value="${i}" ${days.includes(i)?"checked":""}>${n}</label>`).join("")}</div>`}
+
+
+const WEEK_DAYS=[
+  {v:0,t:"א׳"},
+  {v:1,t:"ב׳"},
+  {v:2,t:"ג׳"},
+  {v:3,t:"ד׳"},
+  {v:4,t:"ה׳"},
+  {v:5,t:"ו׳"},
+  {v:6,t:"ש׳"}
+];
+function daysEditor(days=[]){
+  if(!Array.isArray(days))days=String(days||"").split(",").filter(x=>x!=="").map(Number);
+  const all=!days.length;
+  return `<div class="weeklyBox"><strong>ימים בשבוע</strong><div class="small">אם לא מסמנים ימים — הפעולה תופיע בכל יום.</div><div class="weeklyDays">${WEEK_DAYS.map(d=>`<label class="weeklyDay"><input type="checkbox" data-day="${d.v}" ${all||days.includes(d.v)?"checked":""}>${d.t}</label>`).join("")}</div><input type="hidden" data-f="days" value="${esc(all?"":days.join(","))}"></div>`;
+}
+function collectDaysFromRow(row){
+  const boxes=[...row.querySelectorAll("[data-day]")];
+  if(!boxes.length)return "";
+  const checked=boxes.filter(b=>b.checked).map(b=>b.dataset.day);
+  return checked.length===7?"":checked.join(",");
+}
 
 function schedule(){return`<section class="section card">${title("📅","שגרת יום","פעולות קצרות, קבועות וברורות")}${data.schedule.sort((a,b)=>a.time.localeCompare(b.time)).map(i=>`<div class="row" data-type="schedule" data-id="${i.id}"><div class="formgrid three"><label>שעה<input data-f="time" type="time" value="${esc(i.time)}"></label><label>אייקון<input data-f="image" value="${esc(i.image)}"></label><label>פעולה<input data-f="text" value="${esc(i.text)}"></label><label>להציג למטופלת<select data-f="forPatient"><option value="true" ${i.forPatient?"selected":""}>כן</option><option value="false" ${!i.forPatient?"selected":""}>לא</option></select></label><label>ימי שבוע${daysPicker(i.days)}</label></div><div class="actions"><button class="btn green" data-a="saveRow" data-type="schedule" data-id="${i.id}">שמירה</button><button class="btn rose" data-a="delRow" data-type="schedule" data-id="${i.id}">מחיקה</button></div></div>`).join("")}<div class="row" data-new="schedule"><h3>הוספת פעולה</h3><div class="formgrid three"><label>שעה<input data-f="time" type="time"></label><label>אייקון<input data-f="image" value="✅"></label><label>פעולה<input data-f="text"></label><label>ימי שבוע${daysPicker([0,1,2,3,4,5,6])}</label></div><div class="actions"><button class="btn green" data-a="addRow" data-type="schedule">הוספה</button></div></div></section>`}
 
@@ -1037,6 +1103,36 @@ function folderIdFromUrl(value){
   return m?m[1]:value;
 }
 
+
+let __managedAudio=null;
+function stopManagedAudio(){
+  try{
+    if(__managedAudio){__managedAudio.pause();__managedAudio.currentTime=0}
+  }catch{}
+  __managedAudio=null;
+  document.querySelectorAll("audio").forEach(a=>{
+    try{a.pause();a.currentTime=0}catch{}
+  });
+  try{if(window.speechSynthesis)window.speechSynthesis.cancel()}catch{}
+}
+async function playManagedAudio(src){
+  if(!src)return;
+  stopManagedAudio();
+  const audio=new Audio(src);
+  __managedAudio=audio;
+  audio.onended=()=>{if(__managedAudio===audio)__managedAudio=null};
+  audio.onpause=()=>{};
+  await audio.play();
+}
+document.addEventListener("play",e=>{
+  const a=e.target;
+  if(!a||a.tagName!=="AUDIO")return;
+  document.querySelectorAll("audio").forEach(other=>{
+    if(other!==a){try{other.pause();other.currentTime=0}catch{}}
+  });
+  __managedAudio=a;
+},true);
+
 let voiceRecorder=null;
 let voiceChunks=[];
 let voiceRecordingKey="";
@@ -1056,11 +1152,12 @@ function voice(){
   data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
   const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
-  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
-  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button><button class="btn soft" data-a="openVoiceFolder">פתיחת תיקיית ההקלטות בדרייב</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
+  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn soft" data-a="stopPlayback">עצירת השמעה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
+  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button><button class="btn soft" data-a="stopPlayback">עצירת כל השמעה</button><button class="btn soft" data-a="openVoiceFolder">פתיחת תיקיית ההקלטות בדרייב</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
 }
 async function startVoice(key){
   try{
+    stopManagedAudio();
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert("הדפדפן הזה לא תומך בהקלטה. נסי Chrome/Edge ועדיף HTTPS.");return}
     if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop();
     saveInputs();
@@ -1108,14 +1205,13 @@ async function startVoice(key){
   }
 }
 function stopVoice(){if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop()}
-async function playVoice(key){
+async async function playVoice(key){
   const src=voiceAudioSource(key);
   if(!src)return alert("אין הקלטה שמורה עדיין");
   try{
-    const audio=new Audio(src);
-    await audio.play();
+    await playManagedAudio(src);
   }catch(err){
-    alert("לא הצלחתי להשמיע את ההקלטה. אם שמרת עכשיו, חכי כמה שניות ולחצי שוב. אם זה חוזר, בדקי שקוד Apps Script עודכן ושהקובץ בדרייב משותף לצפייה עם קישור.");
+    alert("לא הצלחתי להשמיע את ההקלטה. אם שמרת עכשיו, חכי כמה שניות ולחצי שוב.");
   }
 }
 async function deleteVoice(key){
@@ -1127,7 +1223,12 @@ async function deleteVoice(key){
   render();
 }
 
-function content(){return({profile,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud}[tab]||profile)()}
+
+function patientEditMap(){
+  return `<section class="section card blue">${title("🧭","איפה עורכים כל דבר שמופיע במסך המטופל/ת?","מפת עריכה מהירה כדי שלא צריך לנחש")}<div class="patientEditMap"><h3>מסך המטופל/ת ← איפה עורכים</h3><ul><li>שם, כתובת, “מי אני”, הודעות ביטחון — לשונית פרופיל.</li><li>מה לעשות עכשיו / סדר יום / לוז שבועי — לשונית שגרה.</li><li>טלפונים ותמונות אנשי קשר — לשונית טלפונים.</li><li>בני משפחה ושומר מסך זיכרונות — לשונית משפחה.</li><li>תרופות — לשונית תרופות.</li><li>הודעת בלבול, לילה, שירותים, יציאה מהבית — לשונית בטיחות.</li><li>מוזיקה, מזג אוויר, מצב פסיבי, Wake Lock — לשונית הגדרות חכמות.</li><li>קול אמיתי של המשפחה — לשונית קול משפחתי.</li></ul></div></section>`;
+}
+
+function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud}[tab]||profile)()}
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();render()}
@@ -1166,26 +1267,68 @@ async function copyText(text){
 }
 
 
+
+const ISRAEL_LOCATION_FALLBACKS={
+  "רוחמה":{name:"רוחמה",lat:31.4969,lon:34.7044},
+  "קיבוץ רוחמה":{name:"רוחמה",lat:31.4969,lon:34.7044},
+  "ruhama":{name:"Ruhama",lat:31.4969,lon:34.7044},
+  "ruhama israel":{name:"Ruhama",lat:31.4969,lon:34.7044}
+};
+function cleanHebrewLocationName(value){
+  let s=String(value||"").trim();
+  s=s.replace(/[״"']/g,"").replace(/\s+/g," ");
+  s=s.replace(/^(קיבוץ|מושב|עיר|יישוב|היישוב|קיבוץ\s+|מושב\s+)/,"").trim();
+  return s;
+}
+function locationFallback(value){
+  const raw=String(value||"").trim().toLowerCase();
+  const clean=cleanHebrewLocationName(value).toLowerCase();
+  return ISRAEL_LOCATION_FALLBACKS[raw]||ISRAEL_LOCATION_FALLBACKS[clean]||null;
+}
+async function geocodeIsraelLocation(value){
+  const fallback=locationFallback(value);
+  if(fallback)return {name:fallback.name,latitude:fallback.lat,longitude:fallback.lon,source:"fallback"};
+  const clean=cleanHebrewLocationName(value);
+  const tries=[
+    clean,
+    `${clean} ישראל`,
+    `${clean} Israel`,
+    value,
+    `${value} Israel`
+  ].filter(Boolean);
+  for(const q of tries){
+    try{
+      const url=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=he&format=json`;
+      const res=await fetch(url);
+      const j=await res.json();
+      const arr=j.results||[];
+      const israel=arr.find(x=>{
+        const c=String(x.country_code||x.country||"").toLowerCase();
+        return c==="il"||c.includes("israel")||c.includes("ישראל");
+      })||arr[0];
+      if(israel)return israel;
+    }catch(e){}
+  }
+  return null;
+}
+
 async function setWeatherCity(){
   saveInputs();
   const city=(document.getElementById("weatherCityInput")?.value||data.settings.weatherCity||"").trim();
   if(!city){alert("צריך להקליד שם עיר");return}
   try{
     showStatus("מחפשת עיר...");
-    const url=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=he&format=json`;
-    const res=await fetch(url);
-    const j=await res.json();
-    const place=j.results&&j.results[0];
+    const place=await geocodeIsraelLocation(city);
     if(!place){
       alert("לא מצאתי את העיר. נסי לכתוב באנגלית או להוסיף מדינה.");
       return;
     }
     data.settings.weatherCity=place.name||city;
-    data.settings.weatherLat=String(place.latitude);
-    data.settings.weatherLon=String(place.longitude);
+    data.settings.weatherLat=String(place.latitude||place.lat);
+    data.settings.weatherLon=String(place.longitude||place.lon);
     data.settings.weatherEnabled=true;
     save();
-    alert(`עודכן מזג אוויר לפי: ${data.settings.weatherCity}`);
+    showToast(`עודכן מזג אוויר לפי: ${data.settings.weatherCity} ✅`,"ok");
     render();
   }catch(err){
     alert("לא הצלחתי לבדוק את העיר. בדקי חיבור אינטרנט ונסי שוב.");
@@ -1202,10 +1345,7 @@ async function updateWeatherFromProfile(){
   if(!locationName){alert("צריך למלא עיר/יישוב בפרופיל המטופל/ת");return}
   try{
     showStatus("מחפשת מיקום...");
-    const url=`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=1&language=he&format=json`;
-    const res=await fetch(url);
-    const j=await res.json();
-    const place=j.results&&j.results[0];
+    const place=await geocodeIsraelLocation(locationName);
     if(!place){
       alert("לא מצאתי את המיקום. נסי לכתוב את היישוב באנגלית או להוסיף מדינה, למשל Ruhama Israel.");
       return;
@@ -1213,10 +1353,10 @@ async function updateWeatherFromProfile(){
     data.settings.weatherAutoFromProfile=true;
     data.settings.weatherEnabled=true;
     data.settings.weatherCity=place.name||locationName;
-    data.settings.weatherLat=String(place.latitude);
-    data.settings.weatherLon=String(place.longitude);
+    data.settings.weatherLat=String(place.latitude||place.lat);
+    data.settings.weatherLon=String(place.longitude||place.lon);
     save();
-    alert(`מזג האוויר עודכן לפי: ${data.person.city||locationName}`);
+    showToast(`מזג האוויר עודכן לפי: ${data.person.city||locationName} ✅`,"ok");
     render();
   }catch(err){
     alert("לא הצלחתי לעדכן מזג אוויר לפי המיקום. בדקי חיבור אינטרנט ונסי שוב.");
@@ -1235,7 +1375,7 @@ document.addEventListener("change",async e=>{
     const preview=box.querySelector("[data-photo-preview]");
     hidden.value=dataUrl;
     preview.innerHTML=`<img src="${dataUrl}">`;
-    showStatus("התמונה מוכנה — לחצי שמירה");
+    showStatus("התמונה מוכנה — עכשיו ללחוץ שמירה ✅");
   }catch(err){
     alert("לא הצלחתי לקרוא את התמונה. נסי תמונה אחרת.");
   }
@@ -1282,7 +1422,15 @@ document.addEventListener("play",e=>{
   }
 },true);
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString())}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString())}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+
+document.addEventListener("change",e=>{
+  if(!e.target.matches("[data-day]"))return;
+  const row=e.target.closest(".item,.row,.editItem,.listItem,.card,section")||e.target.parentElement;
+  const hidden=row&&row.querySelector('input[type="hidden"][data-f="days"]');
+  if(hidden)hidden.value=collectDaysFromRow(row);
+});
+
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString())}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString())}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);render();
 
 /* INPUT_FIX_V2_ONBOARDING_STABLE */
@@ -1317,10 +1465,14 @@ setTimeout(()=>{
   if(t==="voice"){
     tab="voice";
     render();
-    setTimeout(()=>document.querySelector(".voiceBox")?.scrollIntoView({behavior:"smooth",block:"start"}),180);
+    
   }
 },120);
 
 
 /* BACKOFFICE_VOICE_DIRECT_OPEN_FIX_V9 */
+
+/* AUDIO_STOP_FIX_V10_BACKOFFICE */
+
+/* FULL_FIX_V11_BACK */
 </script></body></html>
