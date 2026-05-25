@@ -852,7 +852,8 @@ function startCloudSync(){
   if(cloudInterval){clearInterval(cloudInterval);cloudInterval=null}
   if(!cloudOn())return;
   pullCloud().catch(()=>showStatus("לא התחבר לגוגל שיט"));
-  cloudInterval=setInterval(()=>pullCloud().catch(()=>{}),Number(CLOUD.pollMs||60000));
+  cloudInterval=
+setInterval(()=>pullCloud().catch(()=>{}),Number(CLOUD.pollMs||60000));
 }
 startCloudSync();
 window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){data=load();render&&render();showStatus("עודכן")}})
@@ -1758,5 +1759,11 @@ setTimeout(()=>{
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
-/* V24_BEST_FINAL_PATCH_BOINDEX */
+/* V24_PERFORMANCE_ACCESSIBILITY_PATCH_BOINDEX */
+
+/* V24_PERFORMANCE_ACCESSIBILITY_PATCH_BOINDEX_PERF_NOTE
+   Backoffice remains event-driven/explicit-save focused. Patient.html contains the main render-throttle fix,
+   which is the important tablet performance path.
+*/
+
 </script></body></html>
