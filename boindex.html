@@ -1353,12 +1353,12 @@ function patientEditMap(){
 function privateCloudSettings(){
   const api=privateApiFromUrl()||CLOUD.appsScriptUrl||"";
   const drive=privateDriveFromUrl()||(data.voiceStorage&&data.voiceStorage.folderId)||"";
-  return `<section class="section card blue">${title("🔐","ענן פרטי למשפחה","כאן מגדירים חיבור לגוגל של המשפחה, כדי שהנתונים לא יעברו דרך מנהלת האתר")}<div class="formgrid"><label>Google Apps Script Web App URL<input id="privateApiBo" dir="ltr" value="${esc(api)}" placeholder="https://script.google.com/macros/s/.../exec"></label><label>תיקיית Drive להקלטות<input id="privateDriveBo" dir="ltr" value="${esc(drive)}" placeholder="https://drive.google.com/drive/folders/..."></label></div><div class="actions"><button class="btn green" data-a="savePrivateCloud">שמירת חיבור פרטי במכשיר הזה</button><button class="btn blue" data-a="copyPrivateCloudLinks">העתקת קישורי מטופל/ת וניהול עם החיבור הפרטי</button></div><div class="small">חשוב: קישור רגיל לגוגל שיט לא מספיק. צריך Web App URL של Apps Script שהחבר/ה פרסו בחשבון שלהם.</div></section>`;
+  return `<section class="section card blue">${title("🔐","ענן פרטי למשפחה","כאן מגדירים חיבור לגוגל של המשפחה, כדי שהנתונים לא יעברו דרך מנהלת האתר")}<div class="formgrid"><label>Google Apps Script Web App URL<input id="privateApiBo" dir="ltr" value="${esc(api)}" placeholder="https://script.google.com/macros/s/.../exec"></label><label>תיקיית Drive להקלטות — אופציונלי<input id="privateDriveBo" dir="ltr" value="${esc(drive)}" placeholder="https://drive.google.com/drive/folders/..."></label></div><div class="actions"><button class="btn green" data-a="savePrivateCloud">שמירת חיבור פרטי במכשיר הזה</button><button class="btn blue" data-a="copyPrivateCloudLinks">העתקת קישורי מטופל/ת וניהול עם החיבור הפרטי</button></div><div class="small">חשוב: קישור רגיל לגוגל שיט לא מספיק. צריך Web App URL של Apps Script שהחבר/ה פרסו בחשבון שלהם.</div></section>`;
 }
 function savePrivateCloud(){
   const api=(document.getElementById("privateApiBo")?.value||"").trim();
   const drive=folderIdFromUrlGlobal((document.getElementById("privateDriveBo")?.value||"").trim());
-  if(!api)return alert("צריך להדביק Web App URL של Apps Script");
+  if(!api)return alert("צריך להדביק Web App URL של Apps Script. תיקיית Drive היא אופציונלית.");
   localStorage.setItem(PRIVATE_CLOUD_KEY,api);
   if(drive)localStorage.setItem(PRIVATE_DRIVE_KEY,drive);
   CLOUD.appsScriptUrl=api;
@@ -1758,5 +1758,5 @@ setTimeout(()=>{
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
-/* V24_FINAL_PWA_ROUTER_PATCH_BOINDEX */
+/* V24_BEST_FINAL_PATCH_BOINDEX */
 </script></body></html>

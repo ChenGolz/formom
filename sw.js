@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v24-final-pwa-router-patch";
+const CACHE_NAME="family-clock-v24-best-final-patch";
 
 const CORE_FILES=[
   "./",
@@ -64,4 +64,4 @@ self.addEventListener("fetch",event=>{
   );
 });
 
-/* V24_FINAL_PWA_ROUTER_PATCH_SW */
+/* V24_BEST_FINAL_PATCH_SW */
