@@ -1,26 +1,14 @@
-Patch ל-V24 — Performance + Accessibility
+Patch ל-V24 — משפטי חיזוק בצד הניהול
 
 להחליף ב-GitHub רק:
-index.html
 boindex.html
-patient.html
-sw.js
 
-תיקונים:
-- sw.js נקי ל-PWA + cache אופציונלי להקלטות Drive אחרי שהושמעו אונליין.
-- boindex.html משתמש ב-./sw.js בלבד.
-- index.html טוען ניהול דרך ./boindex.html ומעדכן URL עם history.pushState.
-- patient.html מצמצם full render כל שנייה, מוסיף fade לתמונות, aria-live להודעות משפחה, רקע פחות רועש ו-passive flash מיידי.
+מה נוסף:
+- כרטיס עדין במסך הניהול עם משפט חיזוק יומי לבן/בת המשפחה המטפל/ת.
+- המשפטים מותאמים לטיפול בקרוב עם דמנציה / מחלת שכחה / ירידה בזיכרון.
+- אם הוזן שם המטופל/ת, חלק מהמשפטים משתמשים בשם.
+- המשפט מתחלף לפי יום, בלי עומס ובלי אנימציות חזקות.
 
-אחרי העלאה:
-F12 → Application → Service Workers → Unregister
-Application → Storage → Clear site data
-ואז לפתוח מחדש.
-
-בדיקות:
-Ctrl+U:
-V24_PERFORMANCE_ACCESSIBILITY_PATCH_INDEX
-V24_PERFORMANCE_ACCESSIBILITY_PATCH_BOINDEX
-V24_PERFORMANCE_ACCESSIBILITY_PATCH_PATIENT
-וב-sw.js:
-V24_PERFORMANCE_ACCESSIBILITY_PATCH_SW
+בדיקה:
+Ctrl+U ולחפש:
+V24_CAREGIVER_ENCOURAGEMENT_PATCH_BOINDEX

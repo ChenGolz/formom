@@ -640,6 +640,51 @@ button.is-saving::after,
 .savePulse{animation:savePulseV20 1.2s ease-in-out infinite alternate}
 @keyframes savePulseV20{from{transform:translateY(0)}to{transform:translateY(-1px)}}
 
+
+/* V24_CAREGIVER_ENCOURAGEMENT_PATCH */
+.caregiverEncouragement{
+  background:linear-gradient(135deg,#eef7ff,#f9fcff);
+  border:2px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin:14px 0 18px;
+  box-shadow:0 14px 36px rgba(52,105,150,.10);
+}
+.caregiverEncouragement .caregiverTop{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
+}
+.caregiverEncouragement .caregiverIcon{
+  width:52px;
+  height:52px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  background:#e3f3ff;
+  font-size:30px;
+}
+.caregiverEncouragement h3{
+  margin:0;
+  font-size:22px;
+  font-weight:1000;
+  color:var(--ink);
+}
+.caregiverEncouragement p{
+  margin:8px 0 0;
+  font-size:20px;
+  line-height:1.45;
+  font-weight:900;
+  color:#385d7a;
+}
+.caregiverEncouragement small{
+  display:block;
+  margin-top:8px;
+  color:var(--muted);
+  font-weight:800;
+}
+
 </style><link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1381,8 +1426,44 @@ async function copyPrivateCloudLinks(){
   try{await navigator.clipboard.writeText(txt);showToast?.("הקישורים הפרטיים הועתקו ✅","ok")}catch{prompt("העתיקו את הקישורים:",txt)}
 }
 
+
+const CAREGIVER_ENCOURAGEMENTS=[
+  name=>`איזה מזל יש ל${name?` ${name}`:"ו/לה"} שיש מי שדואג לו/לה ככה.`,
+  ()=>`כל הכבוד על הדאגה שלך. זה מוערך, גם אם לא תמיד מורגש באותו רגע.`,
+  ()=>`גם דברים קטנים — תמונה, הקלטה, תזכורת או משפט מרגיע — יכולים לעשות שינוי גדול.`,
+  ()=>`הנוכחות שלך נותנת ביטחון. גם כשקשה לראות תגובה ברורה, הלב מרגיש עקביות ורוך.`,
+  ()=>`מותר לך לעשות את זה לאט. טיפול במישהו עם ירידה בזיכרון הוא מרתון, לא ספרינט.`,
+  ()=>`זה בסדר שלא הכול מושלם. עצם זה שבנית דרך לעזור מרחוק זו אהבה בפעולה.`,
+  ()=>`גם אם יש ימים מבלבלים, השגרה שאת/ה יוצר/ת כאן יכולה להפחית פחד ולתת עוגן.`,
+  ()=>`המאמץ שלך חשוב. לפעמים האדם שמולנו לא יודע להגיד תודה, אבל הצורך בביטחון עדיין שם.`,
+  ()=>`כל עדכון קטן בלוח הוא בעצם דרך להגיד: אני כאן, אני זוכר/ת אותך, את/ה לא לבד.`,
+  ()=>`תזכורת גם לך: לדאוג לעצמך זה חלק מהדאגה אליו/אליה.`,
+  ()=>`האהבה שלך נמצאת בפרטים הקטנים — בשעה, בתמונה, בקול, ובמילים המרגיעות.`,
+  ()=>`גם ביום קשה, עצם זה שאת/ה ממשיך/ה לנסות הוא דבר גדול מאוד.`,
+  ()=>`לא תמיד אפשר לעצור את הבלבול, אבל אפשר להוסיף סביבו הרבה ביטחון ורוך.`,
+  ()=>`מה שאת/ה עושה כאן הוא לא “רק טכנולוגיה” — זו דרך לשמור על קשר, שגרה וכבוד.`,
+  ()=>`מותר לבקש עזרה. טיפול באדם עם דמנציה או מחלת שכחה לא נועד להיות לבד.`,
+  ()=>`לפעמים הדבר הכי חשוב הוא פשוט עקביות: אותו קול, אותה תמונה, אותו מסר מרגיע.`,
+  ()=>`גם כשהזיכרון משתנה, תחושת הביטחון שנוצרת ממך עדיין יכולה להישאר.`,
+  ()=>`את/ה לא צריך/ה לפתור הכול היום. מספיק לעשות עוד צעד קטן שמקל על מחר.`,
+  ()=>`הדאגה שלך היא עוגן. גם אם לא תמיד מקבלים חזרה מילים, יש לזה משמעות עמוקה.`,
+  ()=>`כל רגע שבו את/ה מפחית/ה פחד או בלבול הוא רגע של חסד אמיתי.`
+];
+function caregiverNameForEncouragement(){
+  const p=data&&data.person?data.person:{};
+  return String(p.firstName||p.name||p.fullName||"").trim();
+}
+function caregiverEncouragementHtml(){
+  const name=caregiverNameForEncouragement();
+  const todayKey=new Date().toISOString().slice(0,10);
+  let seed=0;
+  for(const ch of (todayKey+name))seed=(seed+ch.charCodeAt(0))%9973;
+  const msg=CAREGIVER_ENCOURAGEMENTS[seed%CAREGIVER_ENCOURAGEMENTS.length](name);
+  return `<section class="caregiverEncouragement" aria-live="polite"><div class="caregiverTop"><div class="caregiverIcon">💙</div><div><h3>גם מי שמטפל/ת צריך/ה רגע של חיזוק</h3></div></div><p>${esc(msg)}</p><small>משפט יומי עדין, כדי להזכיר שגם הדאגה שלך חשובה.</small></section>`;
+}
+
 function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
-function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
+function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${caregiverEncouragementHtml()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");render()}
 function readRow(row){const o={};row.querySelectorAll("[data-f]").forEach(el=>{let v=el.value;if(v==="true")v=true;if(v==="false")v=false;o[el.dataset.f]=v});const days=row.querySelector("[data-days]");if(days)o.days=[...days.querySelectorAll("input:checked")].map(x=>Number(x.value));return o}
@@ -1766,4 +1847,6 @@ if("serviceWorker" in navigator){
    which is the important tablet performance path.
 */
 
+
+/* V24_CAREGIVER_ENCOURAGEMENT_PATCH_BOINDEX */
 </script></body></html>
