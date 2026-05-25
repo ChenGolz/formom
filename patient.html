@@ -645,6 +645,68 @@ body.bg-night .shell .summarybox{
   opacity:.65;
 }
 
+
+/* PINGHTML_FIX_V21 */
+.pingOverlay{
+  position:fixed;
+  inset:0;
+  z-index:180;
+  display:grid;
+  place-items:center;
+  padding:26px;
+  background:rgba(218,240,255,.74);
+  backdrop-filter:blur(8px);
+}
+.pingBox{
+  width:min(920px,94vw);
+  background:#fbfdff;
+  border:3px solid #b7dcf7;
+  border-radius:38px;
+  padding:30px;
+  text-align:center;
+  color:#173653;
+  box-shadow:0 34px 110px rgba(23,54,83,.24);
+}
+.pingIcon{
+  width:96px;
+  height:96px;
+  display:grid;
+  place-items:center;
+  margin:0 auto 12px;
+  border-radius:50%;
+  background:#e3f3ff;
+  font-size:56px;
+}
+.pingBox h2{
+  margin:0;
+  font-size:clamp(34px,6vw,68px);
+  font-weight:1000;
+}
+.pingBox .pingMessage{
+  margin:20px auto;
+  max-width:780px;
+  font-size:clamp(30px,5vw,58px);
+  line-height:1.25;
+  font-weight:1000;
+}
+.pingBox .small{
+  font-size:clamp(18px,2.5vw,24px);
+}
+.pingBox .actions{
+  justify-content:center;
+}
+body.bg-night .pingOverlay{
+  background:rgba(15,26,38,.82);
+}
+body.bg-night .pingBox{
+  background:#162a3b;
+  border-color:#31506b;
+  color:#eef8ff;
+}
+body.bg-night .pingIcon{
+  background:#1d3a52;
+}
+
 </style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1302,7 +1364,20 @@ function musicHtml(){
 }
 
 
-if(typeof calmHtml!=="function")window.calmHtml=()=>""; 
+
+function pingHtml(){
+  const p=data&&data.livePing;
+  if(!p||p.ack)return"";
+  const created=Number(p.createdAt||0);
+  const duration=Number(p.durationMs||0);
+  if(created&&duration&&Date.now()>created+duration)return"";
+  const msg=esc(p.message||"המשפחה שלחה הודעה. הכול בסדר.");
+  const minutesLeft=created&&duration?Math.max(0,Math.ceil((created+duration-Date.now())/60000)):0;
+  return `<div class="pingOverlay no-print" data-allow-locked><div class="pingBox" data-allow-locked onclick="event.stopPropagation()"><div class="pingIcon">💌</div><h2>הודעה מהמשפחה</h2><div class="pingMessage">${msg}</div>${minutesLeft?`<div class="small">ההודעה תישאר עוד בערך ${minutesLeft} דקות.</div>`:""}<div class="actions"><button class="btn green" data-a="ackPing" data-allow-locked>הבנתי ❤️</button><button class="btn soft" data-a="stopAudio" data-allow-locked>⏹️ עצירת קול</button></div></div></div>`;
+}
+
+if(typeof calmHtml!=="function")window.calmHtml=()=>"";
+if(typeof pingHtml!=="function")window.pingHtml=()=>""; 
 if(typeof musicHtml!=="function")window.musicHtml=()=>""; 
 if(typeof livePingHtml!=="function")window.livePingHtml=()=>""; 
 if(typeof screensaverHtml!=="function")window.screensaverHtml=()=>""; 
@@ -1320,7 +1395,7 @@ function updateBackgroundByTime(){
 
 function render(){updateBackgroundByTime();if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${pingHtml()}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${musicHtml()}${calmHtml()}${pingHtml()}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}<footer class="footer no-print">לוח רגוע למחלות שכחה · לעריכה: Backoffice</footer></div><div id="status" class="status"></div>`}
 function speakCalm(){playFamilyVoice("calm",calmText())}
-function checkAutomation(){const current=nxl().n;const id=current?String(current.id):"";if(id&&lastNowId&&id!==lastNowId&&data.settings.anchorChime&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd))chime("soft");if(id&&id!==lastNowId){lastNowId=id;localStorage.setItem("luach_last_now_id",id)}const p=data.livePing;if(p&&!p.ack&&String(p.id)!==lastPingId){lastPingId=String(p.id);localStorage.setItem("luach_last_ping_id",lastPingId);if(data.settings.livePingChime)chime("ping")}if(data.settings.screensaverEnabled&&!calm&&!data.livePing&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd)){const idle=Date.now()-lastActivity;if(idle>Number(data.settings.screensaverMinutes||5)*60000&&!screensaver){screensaver=true;render()}}}
+function checkAutomation(){const current=nxl().n;const id=current?String(current.id):"";if(id&&lastNowId&&id!==lastNowId&&data.settings.anchorChime&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd))chime("soft");if(id&&id!==lastNowId){lastNowId=id;localStorage.setItem("luach_last_now_id",id)}const p=data.livePing;if(p&&!p.ack&&p.createdAt&&p.durationMs&&Date.now()>Number(p.createdAt)+Number(p.durationMs)){data.livePing=null;save();}if(data.livePing&&!data.livePing.ack&&String(data.livePing.id)!==lastPingId){lastPingId=String(data.livePing.id);localStorage.setItem("luach_last_ping_id",lastPingId);if(data.settings.livePingChime)chime("ping")}if(data.settings.screensaverEnabled&&!calm&&!data.livePing&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd)){const idle=Date.now()-lastActivity;if(idle>Number(data.settings.screensaverMinutes||5)*60000&&!screensaver){screensaver=true;render()}}}
 
 function passiveMessage(){
   let el=document.getElementById("passiveFlash");
@@ -1477,4 +1552,6 @@ if("serviceWorker" in navigator){
 /* FINAL_PWA_ROUTER_FIX_V18_PATIENT */
 
 /* CLEAN_PRIVATE_PWA_V19_PATIENT */
+
+/* PINGHTML_FIX_V21_PATIENT */
 </script></body></html>

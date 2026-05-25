@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v20-ui-polish";
+const CACHE_NAME="family-clock-v21-pinghtml-fix";
 
 const CORE_FILES=[
   "./",
@@ -78,3 +78,5 @@ self.addEventListener("fetch",event=>{
 /* CLEAN_PRIVATE_PWA_V19_SW */
 
 /* UI_POLISH_V20_SW */
+
+/* PINGHTML_FIX_V21_SW */
