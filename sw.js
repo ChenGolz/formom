@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v21-pinghtml-fix";
+const CACHE_NAME="family-clock-v22-hard-ping-fallback";
 
 const CORE_FILES=[
   "./",
@@ -80,3 +80,5 @@ self.addEventListener("fetch",event=>{
 /* UI_POLISH_V20_SW */
 
 /* PINGHTML_FIX_V21_SW */
+
+/* HARD_PING_FALLBACK_V22_SW */

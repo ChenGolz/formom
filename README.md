@@ -524,3 +524,27 @@ Ctrl+U ולחפש:
 - sw.js
 
 נבדק גם שאין קריאות לפונקציות `*Html()` שלא מוגדרות.
+
+
+---
+
+# V22 — תיקון קשיח ל-pingHtml/cache
+
+תוקן:
+- `patient.html` כבר לא יכול להישבר מ-`ReferenceError: pingHtml is not defined`.
+- נוספה פונקציית `safeOptionalHtml()` שמעטפת תצוגות אופציונליות.
+- בתוך `render`, קריאות כמו `pingHtml()` מוחלפות בקריאה בטוחה:
+  `safeOptionalHtml("pingHtml")`
+- גם אם הדפדפן טוען גרסה מעורבבת מה-cache, המסך לא אמור להישבר.
+- Service Worker cache name הוחלף כדי לכפות רענון.
+
+בדיקה:
+Ctrl+U ולחפש:
+`HARD_PING_FALLBACK_V22_PATIENT`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js
