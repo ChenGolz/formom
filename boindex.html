@@ -1517,6 +1517,39 @@ function collectDaysFromRow(row){
 }
 
 function iconOptionsHtml(){return `<datalist id="iconOptions">${["☀️","🍳","📞","🍲","🎵","🍽️","🌙","💊","🚶","🛁","☕","📖","❤️","✅","🧘","🌿","🏠","👨‍👩‍👧"].map(x=>`<option value="${x}"></option>`).join("")}</datalist>`}
+function input(label,path,val,type="text"){return`<label>${esc(label)}<input data-path="${esc(path)}" type="${type}" value="${esc(val)}"></label>`}
+function textarea(label,path,val){return`<label>${esc(label)}<textarea data-path="${esc(path)}">${esc(val)}</textarea></label>`}
+function select(label,path,val,opts){return`<label>${esc(label)}<select data-path="${esc(path)}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(val)===String(o[0])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></label>`}
+function boolSelect(label,path,val){return select(label,path,String(!!val),[["true","פעיל"],["false","כבוי"]])}
+function profile(){const p=data.person;return`<section class="section card">${title("❤️","פרופיל אישי","קובע את הטון והמידע המרגיע במסך")}<div class="formgrid">${input("שם פרטי","person.firstName",p.firstName)}${input("שם מלא","person.fullName",p.fullName)}${input("כתובת","person.address",p.address)}${input("עיר / יישוב","person.city",p.city)}${select("שלב תצוגה","stage",data.stage,[["early","עצמאות חלקית - יותר מידע"],["middle","בלבול בינוני - עכשיו/הבא"],["advanced","מתקדם - מינימום מידע"]])}${textarea("משפט מרגיע על הבית","person.safeMessage",p.safeMessage)}${textarea("משפט זהות / משפחה","person.identityNote",p.identityNote)}${textarea("מה מרגיע אותה?","person.calmingTips",p.calmingTips)}${textarea("טריגרים / דברים מלחיצים","person.riskNotes",p.riskNotes)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="updateWeatherFromProfile">🌤️ עדכון מזג אוויר לפי עיר/יישוב המטופל/ת</button></div></section>`}
+function live(){return`<section class="section card green">${title("💚","הודעה מיידית - הודעה מיידית למסך","הודעה גדולה, רגועה וברורה שתופיע אצל המטופלת")}<div class="formgrid"><label>הודעה לשליחה<textarea id="pingText" placeholder="סבתא, אני בדרך אלייך, מגיעה עוד 5 דקות!"></textarea></label><label>משך הצגה בדקות<input id="pingMinutes" type="number" value="5" min="1" max="30"></label></div><div class="actions"><button class="btn green" data-a="sendPing">שליחת הודעה עכשיו</button><button class="btn rose" data-a="clearPing">הסרת הודעה פעילה</button></div>${data.livePing&&!data.livePing.ack?`<div class="notice">הודעה פעילה: ${esc(data.livePing.message)}</div>`:""}</section>`}
+function settings(){const s=data.settings;return`<section class="section card lav">${title("✨","הגדרות חכמות","שומר מסך, צלילים, מזג אוויר, מוזיקה ומצב לילה מוחלט")}<div class="weatherCityBox"><h3>🎵 מוזיקה מרגיעה</h3><p>אפשר להדביק קישור לפלייליסט YouTube שאת יוצרת. במסך המטופל/ת יופיע כפתור מוזיקה פשוט. מומלץ לבחור שירים מוכרים, שקטים, מתקופת הנעורים או המשפחה.</p></div><div class="weatherCityBox"><h3>🌤️ מזג אוויר לפי עיר</h3><p>אפשר להשתמש אוטומטית בעיר/יישוב של המטופל/ת מהפרופיל, למשל “רוחמה”. אפשר גם להקליד עיר ידנית כאן. המערכת תמצא לבד קו רוחב/אורך ותציג מזג אוויר לפי המיקום שנבחר.</p><div class="formgrid"><label>עיר למזג אוויר<input data-path="settings.weatherCity" id="weatherCityInput" value="${esc(s.weatherCity||"")} placeholder="לדוגמה: תל אביב, חיפה, ירושלים, London"></label><label>חיווי מזג אוויר<select data-path="settings.weatherEnabled"><option value="true" ${s.weatherEnabled?"selected":""}>פעיל</option><option value="false" ${!s.weatherEnabled?"selected":""}>כבוי</option></select></label></div><div class="actions"><button class="btn blue" data-a="updateWeatherFromProfile">לפי עיר/יישוב המטופל/ת</button><button class="btn blue" data-a="setWeatherCity">עדכון לפי העיר שהוקלדה כאן</button><button class="btn soft" data-a="saveInputs">שמירה רגילה</button></div><div class="small">מיקום נוכחי: ${esc(s.weatherCity||"לא הוגדר")} · Lat ${esc(s.weatherLat||"")} · Lon ${esc(s.weatherLon||"")}</div></div><div class="formgrid">${boolSelect("מזג אוויר לפי עיר/יישוב המטופל/ת","settings.weatherAutoFromProfile",s.weatherAutoFromProfile)}${boolSelect("שומר מסך זיכרונות","settings.screensaverEnabled",s.screensaverEnabled)}${input("אחרי כמה דקות ללא מגע","settings.screensaverMinutes",s.screensaverMinutes,"number")}${input("כל כמה שניות להחליף זיכרון","settings.memoryIntervalSeconds",s.memoryIntervalSeconds,"number")}${boolSelect("מצב פסיבי למסך המטופל/ת","settings.patientPassiveLock",s.patientPassiveLock)}${boolSelect("נעילת מסך לנגיעות בטעות","settings.lockTouchScreen",s.lockTouchScreen)}${boolSelect("Wake Lock - להשאיר מסך דלוק","settings.wakeLockEnabled",s.wakeLockEnabled)}${input("קו רוחב Latitude","settings.weatherLat",s.weatherLat)}${input("קו אורך Longitude","settings.weatherLon",s.weatherLon)}${boolSelect("צליל עדין בחילופי משימות","settings.anchorChime",s.anchorChime)}${boolSelect("צליל בהודעה מיידית","settings.livePingChime",s.livePingChime)}${boolSelect("מצב לילה מוחלט","settings.nightModeEnabled",s.nightModeEnabled)}${input("תחילת לילה","settings.nightStart",s.nightStart,"time")}${input("סוף לילה","settings.nightEnd",s.nightEnd,"time")}${input("קישור YouTube / פלייליסט לשירים","settings.musicUrl",s.musicUrl||"")}${input("טקסט כפתור מוזיקה במסך המטופל/ת","settings.musicButtonLabel",s.musicButtonLabel||"לשמוע שירים שאני אוהבת")}${boolSelect("Heartbeat לענן","settings.heartbeatEnabled",s.heartbeatEnabled)}</div><div class="actions"><button class="btn green" data-a="saveInputs">שמירה</button><button class="btn blue" data-a="testChime">בדיקת צליל</button></div></section>`}
+
+function daysPicker(days=[]){const names=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];if(!Array.isArray(days))days=[0,1,2,3,4,5,6];return`<div class="daysPicker" data-days>${names.map((n,i)=>`<label class="dayChip"><input type="checkbox" value="${i}" ${days.includes(i)?"checked":""}>${n}</label>`).join("")}</div>`}
+
+
+const WEEK_DAYS=[
+  {v:0,t:"א׳"},
+  {v:1,t:"ב׳"},
+  {v:2,t:"ג׳"},
+  {v:3,t:"ד׳"},
+  {v:4,t:"ה׳"},
+  {v:5,t:"ו׳"},
+  {v:6,t:"ש׳"}
+];
+function daysEditor(days=[]){
+  if(!Array.isArray(days))days=String(days||"").split(",").filter(x=>x!=="").map(Number);
+  const all=!days.length;
+  return `<div class="weeklyBox"><strong>ימים בשבוע</strong><div class="small">אם לא מסמנים ימים - הפעולה תופיע בכל יום.</div><div class="weeklyDays">${WEEK_DAYS.map(d=>`<label class="weeklyDay"><input type="checkbox" data-day="${d.v}" ${all||days.includes(d.v)?"checked":""}>${d.t}</label>`).join("")}</div><input type="hidden" data-f="days" value="${esc(all?"":days.join(","))}"></div>`;
+}
+function collectDaysFromRow(row){
+  const boxes=[...row.querySelectorAll("[data-day]")];
+  if(!boxes.length)return "";
+  const checked=boxes.filter(b=>b.checked).map(b=>b.dataset.day);
+  return checked.length===7?"":checked.join(",");
+}
+
+
 function schedule(){return`<section class="section card">${title("📅","שגרת יום","פעולות קצרות, קבועות וברורות")}${iconOptionsHtml()}${data.schedule.sort((a,b)=>a.time.localeCompare(b.time)).map(i=>`<div class="row" data-type="schedule" data-id="${i.id}"><div class="formgrid three"><label>שעה<input data-f="time" type="time" value="${esc(i.time)}"></label><label>אייקון<input list="iconOptions" data-f="image" value="${esc(i.image)}"></label><label>פעולה<input data-f="text" value="${esc(i.text)}"></label><label>להציג למטופלת<select data-f="forPatient"><option value="true" ${i.forPatient?"selected":""}>כן</option><option value="false" ${!i.forPatient?"selected":""}>לא</option></select></label><label>ימי שבוע${daysPicker(i.days)}</label></div><div class="actions"><button class="btn green" data-a="saveRow" data-type="schedule" data-id="${i.id}">שמירה</button><button class="btn rose" data-a="delRow" data-type="schedule" data-id="${i.id}">מחיקה</button></div></div>`).join("")}<div class="row" data-new="schedule"><h3>הוספת פעולה</h3><div class="formgrid three"><label>שעה<input data-f="time" type="time"></label><label>אייקון<input list="iconOptions" data-f="image" value="✅"></label><label>פעולה<input data-f="text"></label><label>ימי שבוע${daysPicker([0,1,2,3,4,5,6])}</label></div><div class="actions"><button class="btn green" data-a="addRow" data-type="schedule">הוספה</button></div></div></section>`}
 
 function photoUploadField(value=""){
@@ -1865,7 +1898,20 @@ function tabs(){
   return `<nav class="tabs no-print" aria-label="תפריט ניהול">${defs.map(([id,label,icon])=>`<button type="button" data-a="tab" data-tab="${id}" class="${tab===id?"active":""}" aria-current="${tab===id?"page":"false"}">${icon} ${label}</button>`).join("")}</nav>`;
 }
 
-function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
+
+function safeTabHtml(fnName,fallbackFn){
+  try{
+    const fn=window[fnName];
+    if(typeof fn==="function")return fn();
+    if(typeof fallbackFn==="function")return fallbackFn();
+    return `<section class="section card"><h2>הטאב נטען</h2><p>אפשר לבחור טאב אחר או לרענן.</p></section>`;
+  }catch(err){
+    console.warn("tab render failed",fnName,err);
+    return `<section class="section card"><h2>הטאב לא נטען כרגע</h2><p>אפשר לבחור טאב אחר או לרענן.</p></section>`;
+  }
+}
+
+function content(){const names={profile:"profile",map:"patientEditMap",live:"live",settings:"settings",voice:"voice",schedule:"schedule",contacts:"contacts",family:"family",meds:"meds",care:"care",symptoms:"symptoms",monthly:"monthly",safety:"safety",signs:"signs",book:"book",cloud:"cloud",privateCloud:"privateCloudSettings"};return safeTabHtml(names[tab]||"profile",window.profile)}
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}const app=document.getElementById("app");app.innerHTML=`${statusBadges()}<div class="shell">${header()}${missingAccessKeyNotice()}${caregiverEncouragementHtml()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`;boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.();if(app&&!app.querySelector(".safeEditNotice"))app.insertAdjacentHTML("afterbegin",`<div class="safeEditNotice no-print"><span class="unsavedPill">✍️ יש שינויים בעריכה - הם נשמרים זמנית ולא יימחקו מרענון אוטומטי. לחצו שמירה כשסיימתם.</span></div>`)}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save(false);showToast?.("נשמר ✅","ok");boClearUnsaved?.();pushCloud().catch(()=>showStatus("נשמר מקומית"));render()}
@@ -2249,5 +2295,5 @@ if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
 
-/* V24_HOTFIX_TABS_MANIFEST_BOINDEX */
+/* V24_HOTFIX_MISSING_FUNCTIONS_BOINDEX */
 </script></body></html>
