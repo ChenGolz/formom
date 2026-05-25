@@ -1,35 +1,24 @@
-Patch ל-V24 - Quality fixes לפי הרשימה האחרונה
+Patch ל-V24 — Hotfix tabs + manifest
 
 להחליף ב-GitHub רק:
-index.html
 boindex.html
-patient.html
 sw.js
 
-עיקרי התיקונים:
-- מצב תאורה בניהול עובד ומוסיף force-dark/force-light.
-- הוסר כפתור קול משפחתי מהתפריט העליון; הוא נשאר בטאבים.
-- קישורי ניהול/חזרה ללוח מתוקנים ל-patient.html / boindex.html במקום ../ שגרם 404.
-- קישורים חדשים קצרים יותר: בלי mode/v/api מיותר; key נשאר ב-hash.
-- אין יותר ברירת מחדל רחל/כהן כדי למנוע הבהוב שם לא נכון בטעינה ראשונה.
-- במסך המטופל התפריט העליון מוסתר במסך מלא.
-- הוסר footer עם Backoffice ממסך המטופל.
-- נוסח הרגעה ניטרלי יותר בלי את/ה.
-- שורות הכתובת ב"איפה אני נמצאת" צפופות ונקיות יותר.
-- "מי אני" משתמש בשם המלא או בשם הפרטי אם שם מלא ריק.
-- YouTube תומך גם בקישור רגיל וגם בקוד iframe; הוגדר playlist ברירת מחדל.
-- הדפסה של ספר עוגן/שילוט מסודרת יותר.
-- שליחת הודעה מיידית קופצת לשדה הנכון, נשמרת מיידית ומציגה "נשמר".
-- שמירות שורה/הוספה/מחיקה מבצעות push מיידי יותר ומנקות מצב "שינויים שלא נשמרו".
-- מפתח גישה/ענן פרטי/ענן עברו לאזור הגדרות מתקדמות בתוך הגדרות.
-- משפטי חיזוק לבן המשפחה מופיעים בראש הניהול.
-- מצב תצוגה מוצג בעברית.
-- שדה אייקון בשגרה כולל הצעות אייקונים קלילות.
-- הוסר מידע למנהלת האתר בלבד.
-- מקפים ארוכים הוחלפו במקף פשוט.
+מה תוקן:
+- ב-boindex.html נוספה מחדש הפונקציה tabs(), כי render() קרא לה והיא הייתה חסרה.
+- תוקן manifest path:
+  ../manifest.json -> ./manifest.json
+  כדי שלא ינסה לטעון https://chengolz.github.io/manifest.json
+- sw.js קיבל CACHE_NAME חדש כדי לשבור cache ישן.
+
+אחרי העלאה:
+F12 → Application → Service Workers → Unregister
+Application → Storage → Clear site data
+ואז לפתוח מחדש.
 
 בדיקה:
 Ctrl+U ולחפש:
-V24_QUALITY_FIXES_PATCH_BOINDEX
-V24_QUALITY_FIXES_PATCH_PATIENT
-V24_QUALITY_FIXES_PATCH_INDEX
+V24_HOTFIX_TABS_MANIFEST_BOINDEX
+
+וב-sw.js:
+V24_HOTFIX_TABS_MANIFEST_SW

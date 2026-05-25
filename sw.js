@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v24-best-possible-patch";
+const CACHE_NAME="family-clock-v24-hotfix-tabs-manifest";
 const AUDIO_CACHE_NAME="family-clock-drive-audio-runtime-v2";
 
 const CORE_FILES=[
@@ -90,3 +90,5 @@ self.addEventListener("fetch",event=>{
 /* V24_BEST_POSSIBLE_PATCH_SW */
 
 /* V24_QUALITY_FIXES_PATCH_SW */
+
+/* V24_HOTFIX_TABS_MANIFEST_SW */

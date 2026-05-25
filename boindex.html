@@ -867,7 +867,7 @@ body.force-dark .small,body.force-dark .muted,body.force-dark .copyHint{color:#c
   .signCard{break-inside:avoid!important;page-break-inside:avoid!important;min-height:120mm!important}
 }
 
-</style><link rel="manifest" href="../manifest.json">
+</style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1844,6 +1844,27 @@ async function copyPrivateCloudLinks(){
   try{await navigator.clipboard.writeText(txt);showToast?.("הקישורים הפרטיים הועתקו ✅","ok")}catch{prompt("העתיקו את הקישורים:",txt)}
 }
 
+
+function tabs(){
+  const defs=[
+    ["profile","פרופיל","👤"],
+    ["schedule","שגרת יום","📅"],
+    ["live","הודעה מיידית","💌"],
+    ["contacts","טלפונים","☎️"],
+    ["family","משפחה","👨‍👩‍👧‍👦"],
+    ["meds","תרופות","💊"],
+    ["care","טיפול יומי","🫶"],
+    ["symptoms","מעקב","📝"],
+    ["monthly","לוז שבועי/חודשי","🗓️"],
+    ["safety","הרגעה ובטיחות","🧡"],
+    ["signs","שילוט להדפסה","🖨️"],
+    ["book","ספר עוגן","📖"],
+    ["voice","קול משפחתי","🎙️"],
+    ["settings","הגדרות","⚙️"]
+  ];
+  return `<nav class="tabs no-print" aria-label="תפריט ניהול">${defs.map(([id,label,icon])=>`<button type="button" data-a="tab" data-tab="${id}" class="${tab===id?"active":""}" aria-current="${tab===id?"page":"false"}">${icon} ${label}</button>`).join("")}</nav>`;
+}
+
 function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}const app=document.getElementById("app");app.innerHTML=`${statusBadges()}<div class="shell">${header()}${missingAccessKeyNotice()}${caregiverEncouragementHtml()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`;boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.();if(app&&!app.querySelector(".safeEditNotice"))app.insertAdjacentHTML("afterbegin",`<div class="safeEditNotice no-print"><span class="unsavedPill">✍️ יש שינויים בעריכה - הם נשמרים זמנית ולא יימחקו מרענון אוטומטי. לחצו שמירה כשסיימתם.</span></div>`)}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
@@ -2227,4 +2248,6 @@ setTimeout(()=>{boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.()},0
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
+
+/* V24_HOTFIX_TABS_MANIFEST_BOINDEX */
 </script></body></html>
