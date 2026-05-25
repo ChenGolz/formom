@@ -506,6 +506,29 @@ body{
   box-shadow:0 12px 30px rgba(52,105,150,.18);
 }
 
+
+.calmOverlay{
+  position:fixed;
+  inset:0;
+  z-index:95;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  background:rgba(15,36,55,.50);
+  backdrop-filter:blur(6px);
+}
+.calmBox{
+  width:min(900px,94vw);
+  max-height:92vh;
+  overflow:auto;
+  background:#fbfdff;
+  border:2px solid #cce2f7;
+  border-radius:34px;
+  padding:26px;
+  box-shadow:0 30px 90px rgba(23,54,83,.25);
+}
+.calmLine{margin-top:14px}
+
 </style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -624,7 +647,7 @@ setInterval(()=>{
   __lastHealthTick=nowTs;
 },60*1000);
 function cloudOk(){noteCloudSuccess();__cloudFailCount=0}
-function cloudFail(){noteCloudFailure(new Error("cloudFail"));
+function cloudFail(){
   __cloudFailCount++;
   if(__cloudFailCount>=5){
     setTimeout(()=>window.location.reload(),1200);
@@ -689,7 +712,7 @@ function jsonpLoad(){
 async function pullCloud(){
   if(!cloudOn())return;
   const payload=await jsonpLoad();
-  if(!payload||!payload.ok){cloudFail();noteCloudFailure(new Error('cloudFail'));return;}cloudOk();noteCloudSuccess();
+  if(!payload||!payload.ok){noteCloudFailure(new Error('cloudFail'));return;}cloudOk();noteCloudSuccess();
   if(!payload.value)return;
   const s=JSON.stringify(payload.value);
   if(s!==cloudLast){
@@ -718,7 +741,7 @@ let cloudInterval=null;
 function startCloudSync(){
   if(cloudInterval){clearInterval(cloudInterval);cloudInterval=null}
   if(!cloudOn())return;
-  pullCloud().catch(()=>{cloudFail();noteCloudFailure(new Error('cloudFail'));showStatus("לא התחבר לגוגל שיט")});
+  pullCloud().catch(()=>{noteCloudFailure(new Error('cloudFail'));showStatus("לא התחבר לגוגל שיט")});
   cloudInterval=setInterval(()=>pullCloud().catch((err)=>noteCloudFailure(err)),Number(CLOUD.pollMs||60000));
 }
 startCloudSync();
@@ -1094,12 +1117,29 @@ function phones(){const shown=data.stage==="advanced"?data.contacts.slice(0,2):d
 function orient(){return`<section class="section grid grid3"><div class="card warm">${title("🏠","איפה אני נמצאת?")}<div class="big"><p>אני נמצאת בבית.</p><p>${esc(data.person.address)}</p><p>${esc(data.person.city)}</p></div><div class="medium" style="margin-top:16px;background:white;color:#24312f;border-radius:24px;padding:18px">${esc(data.person.safeMessage)}</div></div><div class="card green">${title("❤️","מי אני?","מידע אישי מרגיע")}<div class="medium"><p><strong>שם:</strong> ${esc(data.person.fullName)}</p><p><strong>משפט חשוב:</strong> ${esc(data.person.identityNote)}</p></div></div><div class="card rose">${title("🛡️","אם אני לא בטוחה")}<div class="big"><p>לעצור רגע. לנשום. הכול בסדר.</p><p>${esc(data.safety.confusedMessage)}</p><p>במקרה חירום בלבד: 101</p></div></div></section>`}
 function family(){if(data.stage==="advanced")return"";return`<section class="section card">${title("👨‍👩‍👧","המשפחה הקרובה שלי","תזכורת נעימה לאנשים אהובים")}<div class="familygrid">${data.family.map(f=>`<div class="contact">${avatar(f,"❤️")}<div style="font-size:28px;font-weight:1000;margin-top:12px">${esc(f.relation)}</div><div class="big">${esc(f.name)}</div><div class="medium" style="color:#667774">${esc(f.city)}</div><div class="small">${esc(f.note)}</div></div>`).join("")}</div></section>`}
 function daily(){if(data.stage!=="early")return"";return`<section class="section card">${title("📅","מה עושים היום?")} ${items().map(i=>`<div class="row"><div class="person"><button class="btn soft no-print" data-a="done" data-id="${i.id}">${i.done?"בוצע ✅":"סימון"}</button><div class="emoji" style="font-size:44px;margin:0">${esc(i.image)}</div><div class="medium" style="${i.done?"text-decoration:line-through;color:#999":""}"><strong>${esc(i.time)}</strong> — ${esc(i.text)}</div></div></div>`).join("")}</section>`}
+
+function calmHtml(){
+  if(!calm)return"";
+  const first=esc(data.person&&data.person.firstName||"");
+  const address=esc([data.person&&data.person.address,data.person&&data.person.city].filter(Boolean).join(", "));
+  const safe=esc(data.person&&data.person.safeMessage||"הכול בסדר. את/ה בבית. המשפחה דואגת לך.");
+  const confused=esc(data.safety&&data.safety.confusedMessage||"אפשר לעצור רגע, לנשום לאט, ולהתקשר למשפחה אם צריך.");
+  return `<div class="calmOverlay no-print"><div class="calmBox" data-allow-locked onclick="event.stopPropagation()"><div class="title"><div class="icon">🌿</div><div><h2>${first?first+", ":""}הכול בסדר</h2><p>את/ה בטוח/ה. אין צורך למהר.</p></div></div><div class="big calmLine">אני נמצאת בבית.</div>${address?`<div class="medium calmLine">${address}</div>`:""}<div class="medium calmLine">${safe}</div><div class="medium calmLine">${confused}</div><div class="actions"><button class="btn warm" data-a="speak" data-allow-locked>🔊 הקריאי לי שוב</button><button class="btn soft" data-a="stopAudio" data-allow-locked>⏹️ עצירת קול</button><button class="btn blue" data-a="closeCalm" data-allow-locked>הבנתי, לחזור לשעון</button></div></div></div>`;
+}
+
 function musicHtml(){
   if(!music)return"";
   const raw=data.settings.musicUrl||"";
   const src=window.__musicEmbedUrl||normalizeYouTubeUrl(raw)||youtubeEmbed(raw);
   return`<div class="musicOverlay" data-a="closeMusic"><div class="musicBox" data-allow-locked onclick="event.stopPropagation()"><div class="title"><div class="icon">🎵</div><div><h2>${esc(data.settings.musicButtonLabel||"שירים שאני אוהבת")}</h2><p>אם הנגן לא נטען, אפשר לפתוח ביוטיוב בכפתור הכחול.</p></div></div>${src?`<iframe id="musicFrame" class="musicFrame" src="${src}" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`:`<div class="big">לא הוגדר קישור YouTube ב-Backoffice</div>`}<div class="actions"><button class="btn blue" data-a="openMusicExternal" data-allow-locked>פתיחה ביוטיוב</button><button class="btn rose" data-a="closeMusic" data-allow-locked>סגירה</button></div></div></div>`;
 }
+
+
+if(typeof calmHtml!=="function")window.calmHtml=()=>""; 
+if(typeof musicHtml!=="function")window.musicHtml=()=>""; 
+if(typeof livePingHtml!=="function")window.livePingHtml=()=>""; 
+if(typeof screensaverHtml!=="function")window.screensaverHtml=()=>""; 
+if(typeof nightHtml!=="function")window.nightHtml=()=>""; 
 
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${pingHtml()}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${musicHtml()}${calmHtml()}${pingHtml()}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}<footer class="footer no-print">לוח רגוע למחלות שכחה · לעריכה: Backoffice</footer></div><div id="status" class="status"></div>`}
 function speakCalm(){playFamilyVoice("calm",calmText())}
@@ -1250,4 +1290,6 @@ if("serviceWorker" in navigator){
 /* FULL_FIX_V13_PATIENT */
 
 /* STABLE_UI_FIX_V14_PATIENT */
+
+/* CALM_RENDER_FIX_V15_PATIENT */
 </script></body></html>

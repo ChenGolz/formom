@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-stable-ui-v14";
+const CACHE_NAME="family-clock-calm-render-fix-v15";
 const CORE_FILES=[
   "./",
   "./index.html",

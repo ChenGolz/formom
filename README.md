@@ -317,3 +317,25 @@ Ctrl+U ולחפש:
 - patient.html
 - backoffice/index.html
 - boindex.html
+
+
+---
+
+# תיקון V15 — calmHtml / מסך מטופל ריק
+
+בגרסת V14 הייתה שגיאה במסך המטופל/ת:
+
+```txt
+ReferenceError: calmHtml is not defined
+```
+
+הפונקציה `render()` קראה ל-`calmHtml()` אבל הפונקציה הייתה חסרה.
+בגרסה זו:
+- נוספה פונקציית `calmHtml()` יציבה.
+- נוספו fallback-ים כדי שפונקציות תצוגה חסרות לא ישברו את כל המסך.
+- תוקן כפל אפשרי בספירת שגיאות תקשורת.
+- הורצה בדיקת תחביר על index/patient/backoffice/boindex.
+
+בדיקה:
+Ctrl+U ולחפש:
+`CALM_RENDER_FIX_V15_PATIENT`
