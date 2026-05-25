@@ -140,7 +140,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","full-fix-v11");
+  url.searchParams.set("v","v13-stability-whatsapp");
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
@@ -148,7 +148,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","full-fix-v11");
+  params.set("v","v13-stability-whatsapp");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
@@ -167,7 +167,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","full-fix-v11");
+  url.searchParams.set("v","v13-stability-whatsapp");
   return url.toString();
 }
 function hardOpenVoice(){
@@ -260,6 +260,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* AUDIO_STOP_FIX_V10_INDEX */
 
 /* FULL_FIX_V11_INDEX */
+
+/* FULL_FIX_V12_SYNTAX */
+
+/* FULL_FIX_V13_INDEX */
 </script>
 </body>
 </html>

@@ -252,3 +252,44 @@ Ctrl+U ולחפש:
 בדיקה:
 Ctrl+U ולחפש:
 `FULL_FIX_V11_INDEX`
+
+
+---
+
+# תיקון V12 — תיקון Syntax ב-Backoffice
+
+בגרסת V11 הייתה שגיאת JavaScript:
+`async async function playVoice`
+
+זה גרם ל-Backoffice להישאר ריק עם שגיאה:
+`SyntaxError: Unexpected token 'async'`
+
+בגרסה זו השגיאה תוקנה, ונבדקו תחבירית הקבצים:
+- index.html
+- patient.html
+- backoffice/index.html
+
+בדיקה באתר:
+Ctrl+U ולחפש:
+`FULL_FIX_V12_SYNTAX`
+
+
+---
+
+# תיקון V13 — יציבות, ווטסאפ ונעילת מגע
+
+כולל:
+- החלמה עצמית במסך המטופל/ת: אם יש כמה שגיאות תקשורת ברצף או שהדף קפא זמן רב, הוא מרענן את עצמו.
+- כפתור ב-Backoffice: `🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי`.
+- הגדרה חדשה: `נעילת מסך לנגיעות בטעות`.
+- אם נעילת מגע פעילה, לחיצה רגילה במסך המטופל/ת לא משנה את המסך ומציגה הודעה מרגיעה.
+- Service Worker כבר לא תלוי בקובץ `הצעות-להמשך.txt` כדי להצליח בהתקנה.
+
+בדיקה:
+Ctrl+U ולחפש:
+`FULL_FIX_V13_INDEX`
+
+בנוסף הרצתי בדיקת תחביר על:
+- index.html
+- patient.html
+- backoffice/index.html

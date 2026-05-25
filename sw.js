@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-full-fix-v11";
+const CACHE_NAME="family-clock-v13-stability-whatsapp";
 const CORE_FILES=[
   "./",
   "./index.html",
@@ -9,7 +9,6 @@ const CORE_FILES=[
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./assets/calm-background.svg",
-  "./הצעות-להמשך.txt",
   "./favicon.ico"
 ];
 
