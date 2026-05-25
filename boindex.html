@@ -816,6 +816,35 @@ const OWNER_APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbz21NkWRs7y
 const OWNER_DEFAULT_POLL_MS=60000;
 
 
+
+const FAMILY_ACCESS_KEY_STORAGE="family_clock_family_access_key_v24";
+
+function randomFamilyAccessKey(){
+  const arr=new Uint8Array(18);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function setFamilyAccessKey(key){
+  key=String(key||"").trim();
+  if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+}
+
+function currentFamilyAccessKey(){
+  const p=new URLSearchParams(location.search);
+  const fromUrl=p.get("key")||p.get("token")||p.get("boardKey")||"";
+  if(fromUrl){localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,fromUrl);return fromUrl}
+  return localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+}
+function addAccessKeyToParams(params){
+  const key=currentFamilyAccessKey();
+  if(key)params.set("key",key);
+  return params;
+}
+function accessKeyPayload(){
+  const key=currentFamilyAccessKey();
+  return key?{accessKey:key,token:key,boardKey:key}:{};
+}
+
 const PRIVATE_CLOUD_KEY="family_clock_private_apps_script_url_v17";
 const PRIVATE_DRIVE_KEY="family_clock_private_drive_folder_v17";
 function folderIdFromUrlGlobal(value){
@@ -953,7 +982,7 @@ function jsonpLoad(){
       script.remove();
       reject(new Error("jsonp failed"));
     };
-    script.src=`${apiBase()}${sep}action=load&board=${encodeURIComponent(safeBoardId())}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
+    const qp=new URLSearchParams();qp.set("action","load");qp.set("board",safeBoardId());qp.set("callback",cb);qp.set("t",String(Date.now()));addAccessKeyToParams(qp);script.src=`${apiBase()}${sep}${qp.toString()}`;
     document.head.appendChild(script);
   });
 }
@@ -1084,12 +1113,12 @@ async function pushCloud(){
   if(!cloudOn())return;
   const s=JSON.stringify(data);
   if(s===cloudLast)return;
-  const body={action:"save",boardId:safeBoardId(),value:data};
+  const body={action:"save",boardId:safeBoardId(),value:data,...accessKeyPayload()};
   await fetch(apiBase(),{
     method:"POST",
     mode:"no-cors",
     headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(body)
+    body:JSON.stringify({...body,...accessKeyPayload()})
   });
   cloudLast=s;
   showStatus("נשלח לגוגל שיט");
@@ -1209,7 +1238,7 @@ function shortBoardName(id){
 }
 function boardLinksFor(id){
   const root=location.href.replace(/\/backoffice\/?.*$/,"/").replace(/[?#].*$/,"");
-  return {patient:`${root}?board=${encodeURIComponent(id)}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}`};
+  const k=currentFamilyAccessKey();const keyPart=k?`&key=${encodeURIComponent(k)}`:"";return {patient:`${root}?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}${keyPart}`};
 }
 function activateBoard(id){
   const app=document.getElementById("app");if(app)delete app.dataset.onboarding;
@@ -1220,6 +1249,7 @@ function activateBoard(id){
 async function createBoard(){
   if(!hasOwnerCloud()){render();return}
   const id=randomBoardId();
+  setFamilyAccessKey(randomFamilyAccessKey());
   activateBoard(id);
   data=deepMerge(DEFAULT,data);
   data.boardCreatedAt=Date.now();
@@ -1235,6 +1265,7 @@ function joinBoard(id){
   try{
     if(id.includes("?")||id.includes("http")){
       const u=new URL(id);
+      setFamilyAccessKey(u.searchParams.get("key")||u.searchParams.get("token")||u.searchParams.get("boardKey")||"");
       id=u.searchParams.get("board")||id;
     }
   }catch{}
@@ -1374,7 +1405,7 @@ function postToAppsScript(payload){
     const input=document.createElement("input");
     input.type="hidden";
     input.name="payload";
-    input.value=JSON.stringify(payload);
+    input.value=JSON.stringify({...payload,...accessKeyPayload()});
     form.appendChild(input);
     document.body.appendChild(form);
 
@@ -2049,4 +2080,6 @@ initAdminThemeToggle();
 setTimeout(()=>{boDisableNativeRequiredValidation?.();boRestoreDraftToDom?.()},0);
 /* V24_BACKOFFICE_SAFE_EDITING_PATCH_BOINDEX */
 
+
+/* V24_SECURITY_ACCESS_KEY_PATCH_BOINDEX */
 </script></body></html>

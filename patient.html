@@ -883,6 +883,24 @@ const OWNER_APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbz21NkWRs7y
 const OWNER_DEFAULT_POLL_MS=60000;
 
 
+
+const FAMILY_ACCESS_KEY_STORAGE="family_clock_family_access_key_v24";
+function currentFamilyAccessKey(){
+  const p=new URLSearchParams(location.search);
+  const fromUrl=p.get("key")||p.get("token")||p.get("boardKey")||"";
+  if(fromUrl){localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,fromUrl);return fromUrl}
+  return localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+}
+function addAccessKeyToParams(params){
+  const key=currentFamilyAccessKey();
+  if(key)params.set("key",key);
+  return params;
+}
+function accessKeyPayload(){
+  const key=currentFamilyAccessKey();
+  return key?{accessKey:key,token:key,boardKey:key}:{};
+}
+
 const PRIVATE_CLOUD_KEY="family_clock_private_apps_script_url_v17";
 const PRIVATE_DRIVE_KEY="family_clock_private_drive_folder_v17";
 function folderIdFromUrlGlobal(value){
@@ -1055,7 +1073,7 @@ function jsonpLoad(){
       script.remove();
       reject(new Error("jsonp failed"));
     };
-    script.src=`${apiBase()}${sep}action=load&board=${encodeURIComponent(safeBoardId())}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
+    const qp=new URLSearchParams();qp.set("action","load");qp.set("board",safeBoardId());qp.set("callback",cb);qp.set("t",String(Date.now()));addAccessKeyToParams(qp);script.src=`${apiBase()}${sep}${qp.toString()}`;
     document.head.appendChild(script);
   });
 }
@@ -1076,12 +1094,12 @@ async function pushCloud(){
   if(!cloudOn())return;
   const s=JSON.stringify(data);
   if(s===cloudLast)return;
-  const body={action:"save",boardId:safeBoardId(),value:data};
+  const body={action:"save",boardId:safeBoardId(),value:data,...accessKeyPayload()};
   await fetch(apiBase(),{
     method:"POST",
     mode:"no-cors",
     headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(body)
+    body:JSON.stringify({...body,...accessKeyPayload()})
   });
   cloudLast=s;
   showStatus("נשלח לגוגל שיט");
@@ -1106,7 +1124,7 @@ function jsonpAudio(key){
     const sep=apiBase().includes("?")?"&":"?";
     window[cb]=(payload)=>{delete window[cb];script.remove();resolve(payload)};
     script.onerror=()=>{delete window[cb];script.remove();reject(new Error("audio jsonp failed"))};
-    script.src=`${apiBase()}${sep}action=audio&board=${encodeURIComponent(safeBoardId())}&key=${encodeURIComponent(key)}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
+    const qp=new URLSearchParams();qp.set("action","audio");qp.set("board",safeBoardId());qp.set("key",key);qp.set("callback",cb);qp.set("t",String(Date.now()));addAccessKeyToParams(qp);script.src=`${apiBase()}${sep}${qp.toString()}`;
     document.head.appendChild(script);
   });
 }
@@ -1409,7 +1427,7 @@ function shortBoardName(id){
 }
 function boardLinksFor(id){
   const root=location.href.replace(/\/backoffice\/?.*$/,"/").replace(/[?#].*$/,"");
-  return {patient:`${root}?board=${encodeURIComponent(id)}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}`};
+  const k=currentFamilyAccessKey();const keyPart=k?`&key=${encodeURIComponent(k)}`:"";return {patient:`${root}?board=${encodeURIComponent(id)}${keyPart}`,backoffice:`${root}backoffice/?board=${encodeURIComponent(id)}${keyPart}`};
 }
 function activateBoard(id){
   const app=document.getElementById("app");if(app)delete app.dataset.onboarding;
@@ -1777,4 +1795,6 @@ if("serviceWorker" in navigator){
 /* PINGHTML_FIX_V21_PATIENT */
 
 /* PERFECT_PWA_ROUTER_V23_PATIENT */
+
+/* V24_SECURITY_ACCESS_KEY_PATCH_PATIENT */
 </script></body></html>

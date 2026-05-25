@@ -16,6 +16,7 @@
 const BOARDS_SHEET = 'לוחות';
 const CHUNKS_SHEET = 'לוחות_חלקים';
 const LOG_SHEET = 'לוג';
+const SECURITY_SHEET = 'לוחות_אבטחה';
 const AUDIO_SHEET = 'קבצי_קול';
 const READABLE_PREFIX = 'טבלה_';
 const DEFAULT_AUDIO_FOLDER_NAME = 'השעון המשפחתי - הקלטות';
@@ -29,9 +30,13 @@ function doGet(e) {
   let result;
   try {
     if (action === 'load') {
-      result = loadBoard_(params.board || 'grandma-home-board');
+      const boardId = params.board || 'grandma-home-board';
+      requireBoardAccess_(boardId, accessKeyFromParams_(params), false);
+      result = loadBoard_(boardId);
     } else if (action === 'audio') {
-      result = getAudio_(params.board || '', params.key || '');
+      const boardId = params.board || '';
+      requireBoardAccess_(boardId, accessKeyFromParams_(params), false);
+      result = getAudio_(boardId, params.key || '');
     } else if (action === 'health') {
       result = { ok: true, message: 'החיבור תקין', time: new Date().toISOString() };
     } else {
@@ -51,11 +56,17 @@ function doPost(e) {
     const body = JSON.parse(raw);
 
     if (body.action === 'save') {
-      result = saveBoard_(body.boardId || body.board || 'grandma-home-board', body.value || {});
+      const boardId = body.boardId || body.board || 'grandma-home-board';
+      requireBoardAccess_(boardId, accessKeyFromBody_(body), true);
+      result = saveBoard_(boardId, body.value || {});
     } else if (body.action === 'saveAudio') {
-      result = saveAudio_(body.boardId || body.board || 'grandma-home-board', body.key || 'calm', body.dataUrl || '', body.folderId || '');
+      const boardId = body.boardId || body.board || 'grandma-home-board';
+      requireBoardAccess_(boardId, accessKeyFromBody_(body), true);
+      result = saveAudio_(boardId, body.key || 'calm', body.dataUrl || '', body.folderId || '');
     } else if (body.action === 'deleteAudio') {
-      result = deleteAudio_(body.boardId || body.board || 'grandma-home-board', body.key || 'calm');
+      const boardId = body.boardId || body.board || 'grandma-home-board';
+      requireBoardAccess_(boardId, accessKeyFromBody_(body), true);
+      result = deleteAudio_(boardId, body.key || 'calm');
     } else {
       result = { ok: false, error: 'פעולה לא מוכרת' };
     }
@@ -65,6 +76,78 @@ function doPost(e) {
 
   return output_(result, '');
 }
+
+
+function accessKeyFromParams_(params) {
+  return String((params && (params.accessKey || params.token || params.boardKey || params.key)) || '');
+}
+
+function accessKeyFromBody_(body) {
+  return String((body && (body.accessKey || body.token || body.boardKey || body.key)) || '');
+}
+
+function hashAccessKey_(key) {
+  key = String(key || '');
+  if (!key) return '';
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, key, Utilities.Charset.UTF_8);
+  return bytes.map(function(b) {
+    const v = (b < 0 ? b + 256 : b);
+    return ('0' + v.toString(16)).slice(-2);
+  }).join('');
+}
+
+function getSecurityRow_(boardId) {
+  const sheet = getOrCreateSheet_(SECURITY_SHEET, ['board_id', 'access_hash', 'created_at', 'updated_at']);
+  const last = sheet.getLastRow();
+  if (last <= 1) return null;
+  const values = sheet.getRange(2, 1, last - 1, 4).getValues();
+  for (let i = 0; i < values.length; i++) {
+    if (String(values[i][0]) === String(boardId)) {
+      return { row: i + 2, hash: String(values[i][1] || '') };
+    }
+  }
+  return null;
+}
+
+function registerBoardAccess_(boardId, accessKey) {
+  if (!accessKey) return;
+  const sheet = getOrCreateSheet_(SECURITY_SHEET, ['board_id', 'access_hash', 'created_at', 'updated_at']);
+  const hash = hashAccessKey_(accessKey);
+  const now = new Date();
+  const existing = getSecurityRow_(boardId);
+  if (existing) {
+    if (!existing.hash) sheet.getRange(existing.row, 2, 1, 3).setValues([[hash, now, now]]);
+    return;
+  }
+  sheet.appendRow([boardId, hash, now, now]);
+}
+
+function requireBoardAccess_(boardId, accessKey, allowRegister) {
+  ensureSheets_();
+  boardId = String(boardId || '');
+  if (!boardId) throw new Error('חסר מזהה לוח');
+
+  const row = getSecurityRow_(boardId);
+
+  // Backward compatibility: old boards without a registered access key still work.
+  // The first save with accessKey registers the board and turns protection on.
+  if (!row) {
+    if (allowRegister && accessKey) registerBoardAccess_(boardId, accessKey);
+    return true;
+  }
+
+  if (!row.hash) {
+    if (allowRegister && accessKey) registerBoardAccess_(boardId, accessKey);
+    return true;
+  }
+
+  if (!accessKey) throw new Error('חסר מפתח גישה משפחתי');
+  if (hashAccessKey_(accessKey) !== row.hash) throw new Error('מפתח גישה לא נכון ללוח הזה');
+
+  return true;
+}
+
+/* V24_SECURITY_ACCESS_KEY_PATCH_APPS_SCRIPT */
 
 function output_(obj, callback) {
   const json = JSON.stringify(obj);
@@ -103,6 +186,7 @@ function ensureSheets_() {
   getOrCreateSheet_(CHUNKS_SHEET, ['board_id', 'part', 'chunk']);
   getOrCreateSheet_(AUDIO_SHEET, ['board_id', 'key', 'file_id', 'file_name', 'mime_type', 'folder_id', 'updated_at']);
   getOrCreateSheet_(LOG_SHEET, ['time', 'board_id', 'action', 'note']);
+  getOrCreateSheet_(SECURITY_SHEET, ['board_id', 'access_hash', 'created_at', 'updated_at']);
 }
 
 function loadBoard_(boardId) {
@@ -382,6 +466,7 @@ function stringifyCell_(value) {
 
 function log_(boardId, action, note) {
   const sheet = getOrCreateSheet_(LOG_SHEET, ['time', 'board_id', 'action', 'note']);
+  getOrCreateSheet_(SECURITY_SHEET, ['board_id', 'access_hash', 'created_at', 'updated_at']);
   sheet.appendRow([new Date(), boardId, action, note || '']);
 }
 

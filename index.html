@@ -178,6 +178,24 @@ const OWNER_APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz21NkWRs7y
 const OWNER_DEFAULT_POLL_MS=60000;
 const ONE_LINK_BOARD_KEY="family_clock_board_v4";
 const ONE_LINK_MODE_KEY="family_clock_mode_v4";
+
+const FAMILY_ACCESS_KEY_STORAGE="family_clock_family_access_key_v24";
+function randomFamilyAccessKey(){
+  const arr=new Uint8Array(18);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function currentFamilyAccessKey(){
+  const p=getParams();
+  const fromUrl=p.get("key")||p.get("token")||p.get("boardKey")||"";
+  if(fromUrl){localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,fromUrl);return fromUrl}
+  return localStorage.getItem(FAMILY_ACCESS_KEY_STORAGE)||"";
+}
+function setFamilyAccessKey(key){
+  key=String(key||"").trim();
+  if(key)localStorage.setItem(FAMILY_ACCESS_KEY_STORAGE,key);
+}
+
 const HOME_HELP_KEY="family_clock_home_help_seen_v2";
 
 
@@ -206,6 +224,8 @@ function addPrivateParams(params){
   const folder=currentDriveFolder();
   if(api)params.set("api",api);
   if(folder)params.set("driveFolder",folder);
+  const accessKey=currentFamilyAccessKey();
+  if(accessKey)params.set("key",accessKey);
   return params;
 }
 function hasOwnerCloud(){return !!currentCloudUrl()}
@@ -263,7 +283,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","mobile-ux-polish-v24");
+  url.searchParams.set("v","security-access-key-v24");
   addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
@@ -272,7 +292,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","mobile-ux-polish-v24");
+  params.set("v","security-access-key-v24");
   addPrivateParams(params);
   return base+"?"+params.toString();
 }
@@ -292,7 +312,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","mobile-ux-polish-v24");
+  url.searchParams.set("v","security-access-key-v24");
   addPrivateParams(url.searchParams);
   return url.toString();
 }
@@ -314,7 +334,7 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","mobile-ux-polish-v24");
+  url.searchParams.set("v","security-access-key-v24");
   addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }
@@ -349,6 +369,7 @@ function sendWhatsappInvite(){
 function createBoard(){
   if(!hasOwnerCloud())return render();
   const id=randomBoardId();
+  setFamilyAccessKey(randomFamilyAccessKey());
   localStorage.setItem(ONE_LINK_BOARD_KEY,id);
   render();
   setTimeout(()=>openMode("backoffice"),50);
@@ -359,6 +380,7 @@ function joinBoard(){
   try{
     if(value.includes("http")||value.includes("?")){
       const u=new URL(value);
+      setFamilyAccessKey(u.searchParams.get("key")||u.searchParams.get("token")||u.searchParams.get("boardKey")||"");
       value=u.searchParams.get("board")||value;
     }
   }catch(e){}
@@ -369,7 +391,7 @@ function joinBoard(){
 }
 function portal(){
   const missing=!hasOwnerCloud();
-  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וייחודי.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button><div class="card"><h2>חיבור פרטי למשפחה אחרת</h2><p>אם חבר/ה רוצים שהכול יישמר רק בגוגל שלהם, מדביקים כאן Web App URL של Apps Script ותיקיית Drive שלהם. קישור רגיל לגוגל שיט לא מספיק.</p><input id="privateCloudUrl" placeholder="Google Apps Script Web App URL" dir="ltr" value="${esc(currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?currentCloudUrl():"")}"><input id="privateDriveFolder" placeholder="קישור או Folder ID של תיקיית Drive להקלטות" dir="ltr" value="${esc(currentDriveFolder())}"><button type="button" class="bigBtn green" onclick="savePrivateCloudSetup()">שמירת חיבור פרטי</button><button type="button" class="bigBtn" onclick="clearPrivateCloudSetup()">ניקוי חיבור פרטי מהמכשיר</button></div></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
+  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וגם מפתח גישה פרטי בתוך הקישור.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button><div class="card"><h2>חיבור פרטי למשפחה אחרת</h2><p>אם חבר/ה רוצים שהכול יישמר רק בגוגל שלהם, מדביקים כאן Web App URL של Apps Script ותיקיית Drive שלהם. קישור רגיל לגוגל שיט לא מספיק.</p><input id="privateCloudUrl" placeholder="Google Apps Script Web App URL" dir="ltr" value="${esc(currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?currentCloudUrl():"")}"><input id="privateDriveFolder" placeholder="קישור או Folder ID של תיקיית Drive להקלטות" dir="ltr" value="${esc(currentDriveFolder())}"><button type="button" class="bigBtn green" onclick="savePrivateCloudSetup()">שמירת חיבור פרטי</button><button type="button" class="bigBtn" onclick="clearPrivateCloudSetup()">ניקוי חיבור פרטי מהמכשיר</button></div></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
 }
 function appShell(){
   const board=currentBoard();
@@ -434,6 +456,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* OVERLAY_BUTTONS_FIX_V24_INDEX */
 
 /* V24_PERFORMANCE_ACCESSIBILITY_PATCH_INDEX */
+
+/* V24_SECURITY_ACCESS_KEY_PATCH_INDEX */
 </script>
 </body>
 </html>
