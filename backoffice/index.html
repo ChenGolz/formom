@@ -589,6 +589,27 @@ const STORAGE_KEY="luach_advanced_v4";
 const OWNER_APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbz21NkWRs7yqe5ao_VwEVzURXGn_2IVSwzOQINumgHk48-S0C2XW5PeOyeqeCJcdS-K/exec";
 const OWNER_DEFAULT_POLL_MS=60000;
 
+
+const PRIVATE_CLOUD_KEY="family_clock_private_apps_script_url_v17";
+const PRIVATE_DRIVE_KEY="family_clock_private_drive_folder_v17";
+function folderIdFromUrlGlobal(value){
+  value=String(value||"").trim();
+  const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m?m[1]:value;
+}
+function privateApiFromUrl(){
+  const p=new URLSearchParams(location.search);
+  const api=p.get("api")||p.get("cloudUrl")||"";
+  if(api)localStorage.setItem(PRIVATE_CLOUD_KEY,api);
+  return api||localStorage.getItem(PRIVATE_CLOUD_KEY)||"";
+}
+function privateDriveFromUrl(){
+  const p=new URLSearchParams(location.search);
+  const folder=folderIdFromUrlGlobal(p.get("driveFolder")||"");
+  if(folder)localStorage.setItem(PRIVATE_DRIVE_KEY,folder);
+  return folder||localStorage.getItem(PRIVATE_DRIVE_KEY)||"";
+}
+
 const CLOUD_CONFIG_KEY="luach_cloud_config_v1";
 const DEFAULT_CLOUD={
   enabled:false,
@@ -603,7 +624,7 @@ function cloudConfigFromUrl(){
   return {
     enabled:true,
     provider:"google-sheets",
-    appsScriptUrl:params.get("api")||OWNER_APPS_SCRIPT_URL||"",
+    appsScriptUrl:params.get("api")||privateApiFromUrl()||OWNER_APPS_SCRIPT_URL||"",
     boardId:params.get("board")||"grandma-home-board",
     pollMs:Number(params.get("poll")||OWNER_DEFAULT_POLL_MS||60000)
   };
@@ -687,8 +708,8 @@ function showToast(msg,type="ok"){
 }
 
 function showStatus(msg){try{showToast(String(arguments[0]||"עודכן"),"ok")}catch{}let el=document.getElementById("status");if(!el)return;el.textContent=msg;el.classList.add("show");clearTimeout(showStatus.t);showStatus.t=setTimeout(()=>el.classList.remove("show"),1400)}
-function cloudOn(){return !!(CLOUD.enabled&&CLOUD.appsScriptUrl)}
-function apiBase(){return String(CLOUD.appsScriptUrl||"").trim()}
+function cloudOn(){return !!(CLOUD.enabled&&(privateApiFromUrl()||CLOUD.appsScriptUrl))}
+function apiBase(){return String(privateApiFromUrl()||CLOUD.appsScriptUrl||"").trim()}
 function safeBoardId(){return String(CLOUD.boardId||"grandma-home-board")}
 function jsonpLoad(){
   return new Promise((resolve,reject)=>{
@@ -912,7 +933,7 @@ function youtubeEmbed(url){
 
 let now=new Date(),tab=new URLSearchParams(location.search).get("tab")||"profile";
 function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="soft" data-a="sendFamilyWhatsapp" style="background:#25D366;color:white;font-weight:1000">🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי</button><button class="green" data-a="saveAll">שמירה</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
-function tabs(){const items=[["profile","פרופיל"],["map","מפת עריכה"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
+function tabs(){const items=[["profile","פרופיל"],["map","מפת עריכה"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["privateCloud","ענן פרטי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
 function input(label,path,val,type="text"){return`<label>${esc(label)}<input data-path="${esc(path)}" type="${type}" value="${esc(val)}"></label>`}
 function textarea(label,path,val){return`<label>${esc(label)}<textarea data-path="${esc(path)}">${esc(val)}</textarea></label>`}
 function select(label,path,val,opts){return`<label>${esc(label)}<select data-path="${esc(path)}">${opts.map(o=>`<option value="${esc(o[0])}" ${String(val)===String(o[0])?"selected":""}>${esc(o[1])}</option>`).join("")}</select></label>`}
@@ -1084,8 +1105,14 @@ function safeAudioSrc(valueOrKey){
 
 const DEFAULT_VOICE_FOLDER_ID="1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_";
 const DEFAULT_VOICE_FOLDER_URL="https://drive.google.com/drive/folders/1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_?usp=drive_link";
+
+function privateDriveFolderForVoice(){
+  return privateDriveFromUrl()||"";
+}
+
 function ensureDefaultVoiceFolder(){
-  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:DEFAULT_VOICE_FOLDER_ID,maxSeconds:45};
+  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:privateDriveFolderForVoice()||DEFAULT_VOICE_FOLDER_ID,maxSeconds:45};
+  if(privateDriveFolderForVoice() && (!data.voiceStorage.folderId || data.voiceStorage.folderId===DEFAULT_VOICE_FOLDER_ID)){data.voiceStorage.mode="family";data.voiceStorage.folderId=privateDriveFolderForVoice();}
   if(!data.voiceStorage.folderId){
     data.voiceStorage.mode="family";
     data.voiceStorage.folderId=DEFAULT_VOICE_FOLDER_ID;
@@ -1149,7 +1176,7 @@ function voiceSize(key){const s=data.voiceRecordings&&data.voiceRecordings[key];
 function voice(){
   ensureDefaultVoiceFolder();
   data.voiceRecordings=data.voiceRecordings||{calm:"",confused:"",night:""};
-  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
+  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:privateDriveFolderForVoice()||"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
   const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
   const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn soft" data-a="stopPlayback">עצירת השמעה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
@@ -1161,7 +1188,8 @@ async function startVoice(key){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert("הדפדפן הזה לא תומך בהקלטה. נסי Chrome/Edge ועדיף HTTPS.");return}
     if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop();
     saveInputs();
-    data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
+    ensureDefaultVoiceFolder();
+    data.voiceStorage=data.voiceStorage||{mode:"family",folderId:privateDriveFolderForVoice()||"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
     const maxSeconds=Math.max(5,Math.min(90,Number(data.voiceStorage.maxSeconds||45)));
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     voiceChunks=[];voiceRecordingKey=key;
@@ -1228,7 +1256,38 @@ function patientEditMap(){
   return `<section class="section card blue">${title("🧭","איפה עורכים כל דבר שמופיע במסך המטופל/ת?","מפת עריכה מהירה כדי שלא צריך לנחש")}<div class="patientEditMap"><h3>מסך המטופל/ת ← איפה עורכים</h3><ul><li>שם, כתובת, “מי אני”, הודעות ביטחון — לשונית פרופיל.</li><li>מה לעשות עכשיו / סדר יום / לוז שבועי — לשונית שגרה.</li><li>טלפונים ותמונות אנשי קשר — לשונית טלפונים.</li><li>בני משפחה ושומר מסך זיכרונות — לשונית משפחה.</li><li>תרופות — לשונית תרופות.</li><li>הודעת בלבול, לילה, שירותים, יציאה מהבית — לשונית בטיחות.</li><li>מוזיקה, מזג אוויר, מצב פסיבי, Wake Lock — לשונית הגדרות חכמות.</li><li>קול אמיתי של המשפחה — לשונית קול משפחתי.</li></ul></div></section>`;
 }
 
-function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud}[tab]||profile)()}
+
+function privateCloudSettings(){
+  const api=privateApiFromUrl()||CLOUD.appsScriptUrl||"";
+  const drive=privateDriveFromUrl()||(data.voiceStorage&&data.voiceStorage.folderId)||"";
+  return `<section class="section card blue">${title("🔐","ענן פרטי למשפחה","כאן מגדירים חיבור לגוגל של המשפחה, כדי שהנתונים לא יעברו דרך מנהלת האתר")}<div class="formgrid"><label>Google Apps Script Web App URL<input id="privateApiBo" dir="ltr" value="${esc(api)}" placeholder="https://script.google.com/macros/s/.../exec"></label><label>תיקיית Drive להקלטות<input id="privateDriveBo" dir="ltr" value="${esc(drive)}" placeholder="https://drive.google.com/drive/folders/..."></label></div><div class="actions"><button class="btn green" data-a="savePrivateCloud">שמירת חיבור פרטי במכשיר הזה</button><button class="btn blue" data-a="copyPrivateCloudLinks">העתקת קישורי מטופל/ת וניהול עם החיבור הפרטי</button></div><div class="small">חשוב: קישור רגיל לגוגל שיט לא מספיק. צריך Web App URL של Apps Script שהחבר/ה פרסו בחשבון שלהם.</div></section>`;
+}
+function savePrivateCloud(){
+  const api=(document.getElementById("privateApiBo")?.value||"").trim();
+  const drive=folderIdFromUrlGlobal((document.getElementById("privateDriveBo")?.value||"").trim());
+  if(!api)return alert("צריך להדביק Web App URL של Apps Script");
+  localStorage.setItem(PRIVATE_CLOUD_KEY,api);
+  if(drive)localStorage.setItem(PRIVATE_DRIVE_KEY,drive);
+  CLOUD.appsScriptUrl=api;
+  CLOUD.enabled=true;
+  saveCloudConfig();
+  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"",maxSeconds:45};
+  if(drive){data.voiceStorage.mode="family";data.voiceStorage.folderId=drive;save()}
+  showToast?.("החיבור הפרטי נשמר ✅","ok");
+}
+async function copyPrivateCloudLinks(){
+  savePrivateCloud();
+  const api=privateApiFromUrl()||CLOUD.appsScriptUrl||"";
+  const drive=privateDriveFromUrl()||(data.voiceStorage&&data.voiceStorage.folderId)||"";
+  const root=location.href.replace(/\/backoffice\/?.*$/,"/").replace(/\/boindex\.html.*$/,"/");
+  const board=CLOUD.boardId;
+  const patient=`${root}?board=${encodeURIComponent(board)}&mode=patient&api=${encodeURIComponent(api)}${drive?`&driveFolder=${encodeURIComponent(drive)}`:""}`;
+  const admin=`${root}?board=${encodeURIComponent(board)}&mode=backoffice&api=${encodeURIComponent(api)}${drive?`&driveFolder=${encodeURIComponent(drive)}`:""}`;
+  const txt=`מסך המטופל/ת:\n${patient}\n\nניהול:\n${admin}`;
+  try{await navigator.clipboard.writeText(txt);showToast?.("הקישורים הפרטיים הועתקו ✅","ok")}catch{prompt("העתיקו את הקישורים:",txt)}
+}
+
+function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
 function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");render()}
@@ -1382,11 +1441,18 @@ document.addEventListener("change",async e=>{
 });
 
 
+
+function privateQueryStringForLinks(){
+  const api=privateApiFromUrl()||CLOUD.appsScriptUrl||"";
+  const drive=privateDriveFromUrl()||(data.voiceStorage&&data.voiceStorage.folderId)||"";
+  return `${api?`&api=${encodeURIComponent(api)}`:""}${drive?`&driveFolder=${encodeURIComponent(drive)}`:""}`;
+}
+
 function currentOneLink(){
   const params=new URLSearchParams(location.search);
   const board=params.get("board")||(typeof CLOUD!=="undefined"&&CLOUD.boardId)||"";
   const root=location.href.replace(/\/backoffice\/?.*$/,"/");
-  return root+"?board="+encodeURIComponent(board);
+  return root+"?board="+encodeURIComponent(board)+privateQueryStringForLinks();
 }
 function sendWhatsappInvite(){
   const link=currentOneLink();
@@ -1435,7 +1501,7 @@ function currentOneLinkForInstructions(){
   const params=new URLSearchParams(location.search);
   const board=params.get("board")||(typeof CLOUD!=="undefined"&&CLOUD.boardId)||"";
   const root=location.href.replace(/\/backoffice\/?.*$/,"/");
-  return root+"?board="+encodeURIComponent(board);
+  return root+"?board="+encodeURIComponent(board)+privateQueryStringForLinks();
 }
 function sendFamilyWhatsapp(){
   const base=currentOneLinkForInstructions();
@@ -1461,7 +1527,7 @@ function notifyParentRoute(tabName){
   }catch{}
 }
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);
 const __backofficeRenderBase=render;
 render=function(){
@@ -1534,4 +1600,15 @@ setTimeout(()=>{
 /* CALM_RENDER_FIX_V15_BACKOFFICE */
 
 /* PWA_AUDIO_ROUTER_FIX_V16_BACKOFFICE */
+
+/* PRIVATE_FAMILY_CLOUD_V17_BACKOFFICE */
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    const swPath=location.pathname.includes("/backoffice/")?"../sw.js":"./sw.js";
+    navigator.serviceWorker.register(swPath).catch(()=>{});
+  });
+}
+
+/* FINAL_PWA_ROUTER_FIX_V18_BACKOFFICE */
 </script></body></html>

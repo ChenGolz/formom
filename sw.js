@@ -1,17 +1,17 @@
-const CACHE_NAME="family-clock-v16-pwa-audio-router-fix";
+const CACHE_NAME="family-clock-v18-final-pwa-router-fix";
 
-// Keep this list intentionally small and ASCII-safe.
-// Missing optional files must not block the PWA installation.
+// CORE_FILES contains only stable root paths that should exist on GitHub Pages.
+// Optional files are cached best-effort and never block PWA installation.
 const CORE_FILES=[
   "./",
   "./index.html",
   "./patient.html",
   "./boindex.html",
   "./manifest.json",
-  "./favicon.ico",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./assets/calm-background.svg"
+  "./assets/calm-background.svg",
+  "./favicon.ico"
 ];
 
 const OPTIONAL_FILES=[
@@ -48,7 +48,6 @@ self.addEventListener("fetch",event=>{
 
   const url=new URL(req.url);
 
-  // Do not cache live APIs.
   if(
     url.hostname.includes("script.google") ||
     url.hostname.includes("googleusercontent") ||
@@ -78,4 +77,4 @@ self.addEventListener("fetch",event=>{
   );
 });
 
-/* PWA_AUDIO_ROUTER_FIX_V16_SW */
+/* FINAL_PWA_ROUTER_FIX_V18_SW */

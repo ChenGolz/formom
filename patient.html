@@ -596,6 +596,27 @@ const STORAGE_KEY="luach_advanced_v4";
 const OWNER_APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbz21NkWRs7yqe5ao_VwEVzURXGn_2IVSwzOQINumgHk48-S0C2XW5PeOyeqeCJcdS-K/exec";
 const OWNER_DEFAULT_POLL_MS=60000;
 
+
+const PRIVATE_CLOUD_KEY="family_clock_private_apps_script_url_v17";
+const PRIVATE_DRIVE_KEY="family_clock_private_drive_folder_v17";
+function folderIdFromUrlGlobal(value){
+  value=String(value||"").trim();
+  const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m?m[1]:value;
+}
+function privateApiFromUrl(){
+  const p=new URLSearchParams(location.search);
+  const api=p.get("api")||p.get("cloudUrl")||"";
+  if(api)localStorage.setItem(PRIVATE_CLOUD_KEY,api);
+  return api||localStorage.getItem(PRIVATE_CLOUD_KEY)||"";
+}
+function privateDriveFromUrl(){
+  const p=new URLSearchParams(location.search);
+  const folder=folderIdFromUrlGlobal(p.get("driveFolder")||"");
+  if(folder)localStorage.setItem(PRIVATE_DRIVE_KEY,folder);
+  return folder||localStorage.getItem(PRIVATE_DRIVE_KEY)||"";
+}
+
 const CLOUD_CONFIG_KEY="luach_cloud_config_v1";
 const DEFAULT_CLOUD={
   enabled:false,
@@ -610,7 +631,7 @@ function cloudConfigFromUrl(){
   return {
     enabled:true,
     provider:"google-sheets",
-    appsScriptUrl:params.get("api")||OWNER_APPS_SCRIPT_URL||"",
+    appsScriptUrl:params.get("api")||privateApiFromUrl()||OWNER_APPS_SCRIPT_URL||"",
     boardId:params.get("board")||"grandma-home-board",
     pollMs:Number(params.get("poll")||OWNER_DEFAULT_POLL_MS||60000)
   };
@@ -729,8 +750,8 @@ setInterval(()=>{
   }
 },60*1000);
 
-function cloudOn(){return !!(CLOUD.enabled&&CLOUD.appsScriptUrl)}
-function apiBase(){return String(CLOUD.appsScriptUrl||"").trim()}
+function cloudOn(){return !!(CLOUD.enabled&&(privateApiFromUrl()||CLOUD.appsScriptUrl))}
+function apiBase(){return String(privateApiFromUrl()||CLOUD.appsScriptUrl||"").trim()}
 function safeBoardId(){return String(CLOUD.boardId||"grandma-home-board")}
 function jsonpLoad(){
   return new Promise((resolve,reject)=>{
@@ -1364,4 +1385,8 @@ if("serviceWorker" in navigator){
 /* CALM_RENDER_FIX_V15_PATIENT */
 
 /* PWA_AUDIO_ROUTER_FIX_V16_PATIENT */
+
+/* PRIVATE_FAMILY_CLOUD_V17_PATIENT */
+
+/* FINAL_PWA_ROUTER_FIX_V18_PATIENT */
 </script></body></html>

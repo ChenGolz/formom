@@ -106,7 +106,52 @@ const ONE_LINK_BOARD_KEY="family_clock_board_v4";
 const ONE_LINK_MODE_KEY="family_clock_mode_v4";
 const HOME_HELP_KEY="family_clock_home_help_seen_v2";
 
-function hasOwnerCloud(){return !!OWNER_APPS_SCRIPT_URL}
+
+const PRIVATE_CLOUD_KEY="family_clock_private_apps_script_url_v17";
+const PRIVATE_DRIVE_KEY="family_clock_private_drive_folder_v17";
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function folderIdFromUrlGlobal(value){
+  value=String(value||"").trim();
+  const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m?m[1]:value;
+}
+function currentCloudUrl(){
+  const p=getParams();
+  const fromUrl=p.get("api")||p.get("cloudUrl")||"";
+  if(fromUrl){localStorage.setItem(PRIVATE_CLOUD_KEY,fromUrl);return fromUrl}
+  return localStorage.getItem(PRIVATE_CLOUD_KEY)||OWNER_APPS_SCRIPT_URL||"";
+}
+function currentDriveFolder(){
+  const p=getParams();
+  const fromUrl=folderIdFromUrlGlobal(p.get("driveFolder")||"");
+  if(fromUrl){localStorage.setItem(PRIVATE_DRIVE_KEY,fromUrl);return fromUrl}
+  return localStorage.getItem(PRIVATE_DRIVE_KEY)||"";
+}
+function addPrivateParams(params){
+  const api=currentCloudUrl();
+  const folder=currentDriveFolder();
+  if(api)params.set("api",api);
+  if(folder)params.set("driveFolder",folder);
+  return params;
+}
+function hasOwnerCloud(){return !!currentCloudUrl()}
+function savePrivateCloudSetup(){
+  const api=(document.getElementById("privateCloudUrl")?.value||"").trim();
+  const folder=folderIdFromUrlGlobal((document.getElementById("privateDriveFolder")?.value||"").trim());
+  if(!api)return alert("צריך להדביק Google Apps Script Web App URL. קישור רגיל לגוגל שיט לא מספיק.");
+  localStorage.setItem(PRIVATE_CLOUD_KEY,api);
+  if(folder)localStorage.setItem(PRIVATE_DRIVE_KEY,folder);
+  alert("החיבור הפרטי נשמר ✅ עכשיו כל לוח שתפתחו ישתמש בענן הזה.");
+  render();
+}
+function clearPrivateCloudSetup(){
+  if(!confirm("למחוק מהמכשיר הזה את החיבור הפרטי?"))return;
+  localStorage.removeItem(PRIVATE_CLOUD_KEY);
+  localStorage.removeItem(PRIVATE_DRIVE_KEY);
+  alert("החיבור הפרטי נמחק מהמכשיר הזה.");
+  render();
+}
+
 function getParams(){return new URLSearchParams(location.search)}
 function currentBoard(){return getParams().get("board")||localStorage.getItem(ONE_LINK_BOARD_KEY)||""}
 function currentMode(){return getParams().get("mode")||localStorage.getItem(ONE_LINK_MODE_KEY)||"patient"}
@@ -129,18 +174,23 @@ function setTopUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
+  addPrivateParams(url.searchParams);
   history.replaceState(null,"",url.toString());
 }
 function oneLink(board){
   const url=new URL(location.href);
-  return url.origin+url.pathname+"?board="+encodeURIComponent(board);
+  url.search="";
+  url.searchParams.set("board",board);
+  addPrivateParams(url.searchParams);
+  return url.toString();
 }
 function modeUrl(board,mode,tab=""){
   const url=new URL(location.href);
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","pwa-audio-router-fix-v16");
+  url.searchParams.set("v","final-pwa-router-fix-v18");
+  addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
@@ -148,7 +198,8 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","pwa-audio-router-fix-v16");
+  params.set("v","final-pwa-router-fix-v18");
+  addPrivateParams(params);
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
@@ -167,7 +218,8 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","pwa-audio-router-fix-v16");
+  url.searchParams.set("v","final-pwa-router-fix-v18");
+  addPrivateParams(url.searchParams);
   return url.toString();
 }
 function hardOpenVoice(){
@@ -188,7 +240,8 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","pwa-audio-router-fix-v16");
+  url.searchParams.set("v","final-pwa-router-fix-v18");
+  addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }
 window.addEventListener("message",event=>{
@@ -199,8 +252,8 @@ window.addEventListener("message",event=>{
   updateBrowserUrl(mode,tab);
 },false);
 
-function openMode(mode){loadFrame(mode,"")}
-function openVoice(){loadFrame("backoffice","voice")}
+function openMode(mode){updateBrowserUrl(mode,"");loadFrame(mode,"")}
+function openVoice(){updateBrowserUrl("backoffice","voice");loadFrame("backoffice","voice")}
 async function copyOneLink(){
   const board=currentBoard();
   const text=oneLink(board);
@@ -242,13 +295,13 @@ function joinBoard(){
 }
 function portal(){
   const missing=!hasOwnerCloud();
-  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וייחודי.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
+  return `<main class="portal"><div class="portalBox"><h1>השעון המשפחתי</h1><p>לא צריך לפתוח חשבון, לא צריך סיסמה, ולא צריך להוריד שום דבר. זה פשוט דף אינטרנט משפחתי: פותחים קישור אחד, ומשם עוברים בלחיצה בין השעון של המטופל/ת לבין ניהול המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת מנהלת האתר חסרה: צריך להדביק פעם אחת את כתובת Google Apps Script בתוך OWNER_APPS_SCRIPT_URL.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם מטופל/ת</strong><span>זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו יצירת לוח</strong><span>המערכת תיצור Family ID ארוך וייחודי.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>שמרו קישור אחד</strong><span>אותו קישור עובד גם לתצוגת המטופל/ת וגם לניהול.</span></div></div></div><div class="cards"><div class="card"><h2>יצירת שעון משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת"><button type="button" class="bigBtn" onclick="createBoard()" ${missing?"disabled":""}>יצירת לוח וקבלת קישור אחד</button></div><div class="card"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button type="button" class="bigBtn green" onclick="joinBoard()">כניסה ללוח</button><div class="card"><h2>חיבור פרטי למשפחה אחרת</h2><p>אם חבר/ה רוצים שהכול יישמר רק בגוגל שלהם, מדביקים כאן Web App URL של Apps Script ותיקיית Drive שלהם. קישור רגיל לגוגל שיט לא מספיק.</p><input id="privateCloudUrl" placeholder="Google Apps Script Web App URL" dir="ltr" value="${esc(currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?currentCloudUrl():"")}"><input id="privateDriveFolder" placeholder="קישור או Folder ID של תיקיית Drive להקלטות" dir="ltr" value="${esc(currentDriveFolder())}"><button type="button" class="bigBtn green" onclick="savePrivateCloudSetup()">שמירת חיבור פרטי</button><button type="button" class="bigBtn" onclick="clearPrivateCloudSetup()">ניקוי חיבור פרטי מהמכשיר</button></div></div></div><div class="small">אם יודעים לפתוח קישור מוואטסאפ — יודעים להשתמש בזה. אותו קישור עובד בטאבלט ובמחשב.</div></div></main>`;
 }
 function appShell(){
   const board=currentBoard();
   const mode=currentMode();
   const tab=currentTab();
-  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" onclick="hardOpenPatient()">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" onclick="hardOpenBackoffice()">⚙️ ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" onclick="hardOpenVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
+  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span>${currentCloudUrl()&&currentCloudUrl()!==OWNER_APPS_SCRIPT_URL?`<span class="badge">ענן פרטי</span>`:""}</div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" onclick="hardOpenPatient()">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" onclick="hardOpenBackoffice()">⚙️ ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" onclick="hardOpenVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
 }
 function showHomeHelp(){
   if(localStorage.getItem(HOME_HELP_KEY))return;
@@ -289,6 +342,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* CALM_RENDER_FIX_V15_INDEX */
 
 /* PWA_AUDIO_ROUTER_FIX_V16_INDEX */
+
+/* PRIVATE_FAMILY_CLOUD_V17_INDEX */
+
+/* FINAL_PWA_ROUTER_FIX_V18_INDEX */
 </script>
 </body>
 </html>

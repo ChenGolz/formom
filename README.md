@@ -363,3 +363,77 @@ Ctrl+U ולחפש:
 - patient.html
 - backoffice/index.html
 - boindex.html
+
+
+---
+
+# V17 — חיבור פרטי למשפחה אחרת
+
+מטרה:
+חבר/ה יכולים להשתמש באתר שלך, אבל הנתונים וההקלטות נשמרים בגוגל שלהם, כך שאין לך גישה אליהם.
+
+חשוב:
+קישור רגיל ל-Google Sheet לא מספיק. צריך Google Apps Script Web App URL.
+
+## הדרך הקלה לחבר/ה
+
+1. החבר/ה יוצרים Google Sheet חדש בחשבון שלהם.
+2. Extensions → Apps Script.
+3. מדביקים את הקוד מתוך:
+   `apps-script/Code.gs`
+4. Deploy → New deployment → Web app.
+5. Execute as: Me.
+6. Who has access: Anyone with the link.
+7. מעתיקים את Web App URL.
+8. יוצרים תיקיית Drive להקלטות.
+9. פותחים את האתר.
+10. במסך הראשון מדביקים:
+   - Web App URL
+   - קישור או Folder ID של תיקיית Drive
+11. לוחצים `שמירת חיבור פרטי`.
+12. יוצרים לוח ומעתיקים קישורים.
+
+## ב-Backoffice
+
+נוספה לשונית:
+`ענן פרטי`
+
+שם אפשר לשמור או להעתיק קישורים שכוללים את החיבור הפרטי.
+
+בדיקה:
+Ctrl+U ולחפש:
+`PRIVATE_FAMILY_CLOUD_V17_INDEX`
+
+
+---
+
+# V18 — תיקון סופי ל-PWA ולניווט
+
+כולל:
+
+1. `sw.js`
+   - `CORE_FILES` כולל רק קבצים בטוחים שקיימים בשורש.
+   - הניהול נשמר כ-`./boindex.html`.
+   - אין תלות בקובץ עברי בתוך התקנת ה-PWA.
+   - `backoffice/index.html` נשמר רק כקובץ אופציונלי ולא יכול להפיל התקנה.
+
+2. `boindex.html`
+   - רישום Service Worker עובד גם כשהקובץ בשורש וגם כשהוא בתוך `/backoffice/`.
+   - הנתיב מחושב אוטומטית:
+     `/backoffice/` → `../sw.js`
+     שורש → `./sw.js`
+
+3. `index.html`
+   - `openMode` ו-`openVoice` מעדכנים את ה-URL האמיתי של הדפדפן בעזרת `history.pushState` דרך `updateBrowserUrl`.
+   - רענון הדף אמור לשמור על מצב: מטופל/ת, ניהול, או קול משפחתי.
+
+בדיקה:
+Ctrl+U ולחפש:
+`FINAL_PWA_ROUTER_FIX_V18_INDEX`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js
