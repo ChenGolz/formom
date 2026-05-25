@@ -7,7 +7,7 @@
 - Backoffice לניהול.
 - קול משפחתי מוקלט.
 - שמירת הקלטות ב-Google Drive במקום Google Sheets.
-- בחירה אם לשמור הקלטות בדרייב של מנהלת האתר או בתיקיית Drive משותפת של המשפחה.
+- בחירה אם לשמור הקלטות בדרייב של החשבון שמריץ את Apps Script או בתיקיית Drive פרטית של המשפחה.
 - קישור לפלייליסט YouTube.
 - תמונות משפחה בהעלאה פשוטה מהמחשב/טלפון.
 - PWA: manifest + service worker + אייקונים.
@@ -430,6 +430,68 @@ Ctrl+U ולחפש:
 בדיקה:
 Ctrl+U ולחפש:
 `FINAL_PWA_ROUTER_FIX_V18_INDEX`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js
+
+
+---
+
+# V19 — גרסה נקייה אחרי בדיקה מחדש
+
+תיקונים שבוצעו:
+
+1. `sw.js`
+   - `CORE_FILES` כולל רק קבצים שקיימים בשורש:
+     `index.html`, `patient.html`, `boindex.html`, `manifest.json`, icons, assets, favicon.
+   - אין `הצעות-להמשך.txt` בתוך `CORE_FILES`.
+   - אין `backoffice/` או `backoffice/index.html` בתוך `CORE_FILES`.
+
+2. `index.html`
+   - ה-iframe של הניהול נטען מ-`./boindex.html`, לא מ-`./backoffice/`.
+   - `openMode` ו-`openVoice` מעדכנים את ה-URL האמיתי של הדפדפן בעזרת `history.pushState`.
+
+3. `boindex.html`
+   - רישום Service Worker הוא `./sw.js`, כי הקובץ יושב בשורש.
+
+4. ענן פרטי
+   - תוקן הניסוח המבלבל: בענן פרטי של משפחה לא צריך לשתף את התיקייה עם מנהלת האתר.
+   - התיקייה צריכה להיות נגישה רק לחשבון ה-Google שמריץ את ה-Apps Script.
+
+בדיקה:
+Ctrl+U ולחפש:
+`CLEAN_PRIVATE_PWA_V19_INDEX`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js
+
+
+---
+
+# V20 — שיפורי UI/UX
+
+שיפורי מסך המטופל/ת:
+- Fade עדין לתמונות שומר המסך / זיכרונות.
+- רקע שמיים עדין לפי זמן ביום: בוקר, יום, ערב, לילה.
+- משימות שסומנו כבוצעו נחלשות ויזואלית, מקבלות פחות צבע וקו חוצה עדין.
+
+שיפורי Backoffice:
+- כפתורי שמירה מקבלים מצב טעינה בזמן שמירה לענן.
+- טאב “קול משפחתי” קיבל כרטיסי קול ברורים, גדולים ונעימים יותר.
+- קישורי שיתוף מוכנים ניתנים להעתקה בלחיצה אחת.
+- נשמרו תיקוני V19: PWA נקי, boindex בשורש, וענן פרטי ללא צורך בשיתוף עם מנהלת האתר.
+
+בדיקה:
+Ctrl+U ולחפש:
+`UI_POLISH_V20_INDEX`
 
 בדיקת תחביר הורצה על:
 - index.html

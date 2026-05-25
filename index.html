@@ -189,16 +189,16 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","final-pwa-router-fix-v18");
+  url.searchParams.set("v","ui-polish-v20");
   addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
-  const base=mode==="backoffice"?"./backoffice/":"./patient.html";
+  const base=mode==="backoffice"?"./boindex.html":"./patient.html";
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","final-pwa-router-fix-v18");
+  params.set("v","ui-polish-v20");
   addPrivateParams(params);
   return base+"?"+params.toString();
 }
@@ -218,7 +218,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","final-pwa-router-fix-v18");
+  url.searchParams.set("v","ui-polish-v20");
   addPrivateParams(url.searchParams);
   return url.toString();
 }
@@ -240,7 +240,7 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","final-pwa-router-fix-v18");
+  url.searchParams.set("v","ui-polish-v20");
   addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }
@@ -346,6 +346,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* PRIVATE_FAMILY_CLOUD_V17_INDEX */
 
 /* FINAL_PWA_ROUTER_FIX_V18_INDEX */
+
+/* CLEAN_PRIVATE_PWA_V19_INDEX */
+
+/* UI_POLISH_V20_INDEX */
 </script>
 </body>
 </html>

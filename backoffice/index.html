@@ -565,6 +565,81 @@ html,body,button,input,textarea,select{
 
 @media(max-width:1050px){.hero-grid,.grid2,.grid3,.wide,.nowgrid,.familygrid,.summary,.contacttop,.qr{grid-template-columns:1fr}.clock-card{min-width:0}.formgrid,.formgrid.three,.checkgrid{grid-template-columns:1fr}.month{gap:5px}.day{min-height:100px;padding:6px}}
 @media print{.no-print,.nav,.tabs,.actions,.footer,.details,.status{display:none!important}.shell{max-width:none;padding:0}.card,.hero{box-shadow:none;break-inside:avoid}body{background:white!important;color:#24312f!important}}
+
+/* UI_POLISH_V20_BACKOFFICE */
+.btn:disabled,
+button:disabled{
+  opacity:.62;
+  cursor:wait;
+  filter:grayscale(18%);
+}
+button.is-saving,
+.btn.is-saving{
+  position:relative;
+  box-shadow:0 0 0 4px rgba(63,132,184,.16), var(--shadow);
+}
+button.is-saving::after,
+.btn.is-saving::after{
+  content:"";
+  width:18px;
+  height:18px;
+  border:3px solid currentColor;
+  border-top-color:transparent;
+  border-radius:50%;
+  margin-inline-start:8px;
+  animation:spinV20 .8s linear infinite;
+}
+@keyframes spinV20{to{transform:rotate(360deg)}}
+.voice-card{
+  background:var(--card);
+  border:2px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-top:14px;
+  display:grid;
+  gap:14px;
+  box-shadow:0 16px 42px rgba(52,105,150,.10);
+}
+.voice-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.voice-card-title strong{
+  display:block;
+  color:var(--ink);
+  font-size:26px;
+  font-weight:1000;
+}
+.voice-card-title span{
+  display:block;
+  color:var(--muted);
+  font-size:18px;
+  font-weight:850;
+  margin-top:4px;
+}
+.voice-card .voiceAudio{width:100%;accent-color:var(--blue2)}
+.voice-card .actions{margin-top:0}
+.copyableCode{
+  cursor:pointer;
+  user-select:all;
+  position:relative;
+  transition:background .2s ease, box-shadow .2s ease;
+}
+.copyableCode:hover{
+  background:#e3f3ff!important;
+  box-shadow:0 0 0 4px rgba(63,132,184,.12);
+}
+.copyHint{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:16px;
+  font-weight:900;
+}
+.savePulse{animation:savePulseV20 1.2s ease-in-out infinite alternate}
+@keyframes savePulseV20{from{transform:translateY(0)}to{transform:translateY(-1px)}}
+
 </style><link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -758,6 +833,19 @@ async function pushCloud(){
   cloudLast=s;
   showStatus("נשלח לגוגל שיט");
 }
+
+const __pushCloudBaseV20=pushCloud;
+pushCloud=async function(){
+  setSavingButtons(true,"⏳ שומר נתונים לענן...");
+  try{
+    await __pushCloudBaseV20();
+    setSavingButtons(false,"✅ נשמר בהצלחה");
+  }catch(err){
+    setSavingButtons(false,"⚠️ נשמר מקומית");
+    throw err;
+  }
+};
+
 function debouncePush(){if(!cloudOn())return;clearTimeout(debouncePush.t);debouncePush.t=setTimeout(()=>pushCloud().catch(()=>showStatus("נשמר מקומית")),650)}
 let cloudInterval=null;
 function startCloudSync(){
@@ -905,7 +993,7 @@ function onboardingHtml(mode="patient"){
   const missing=!hasOwnerCloud();
   const existing=CLOUD.boardId&&cloudOn();
   const links=existing?boardLinksFor(CLOUD.boardId):null;
-  return `<main class="onboard"><div class="onboardBox"><h1>${titleText}</h1><p>ברוכים הבאים. כאן יוצרים לוח אישי למשפחה ומקבלים שני קישורים מוכנים: אחד לטאבלט של המטופל/ת ואחד לעריכה במחשב של המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת בעלת הדף משפחתי עדיין חסרה. לפני שמשתפים עם משפחות, צריך להדביק פעם אחת את כתובת ה-Google Apps Script בקוד במקום OWNER_APPS_SCRIPT_URL. המשתמשים עצמם לא יצטרכו לעשות זאת.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם לוח</strong><span>לדוגמה: כהן, אמא, סבתא רחל. זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו על יצירת לוח</strong><span>המערכת תיצור מזהה פרטי וארוך כדי שכל משפחה תקבל לוח נפרד.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>פתחו את שני הקישורים</strong><span>קישור אחד בטאבלט של המטופל/ת, וקישור אחד במחשב של מי שמנהל/ת את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">4</div><div><strong>מומלץ: הוספה למסך הבית</strong><span>בטאבלט של המטופל/ת פתחו את הקישור, לחצו על תפריט השיתוף, ובחרו “הוסף למסך הבית”. כך הלוח נפתח כמו דף משפחתי, בלי שורת כתובת מבלבלת.</span></div></div></div><div class="onboardActions"><div class="onboardCard"><h2>יצירת לוח משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת" autocomplete="off"><button class="btn blue portalBigButton" data-a="createBoard" ${missing?"disabled":""}>יצירת לוח וקבלת קישורים</button></div><div class="onboardCard"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button class="btn green portalBigButton" data-a="joinBoard">כניסה ללוח</button></div></div>${existing?`<div class="portalLinksNice"><h2 style="margin:0 0 8px;font-size:32px">הלוח מוכן ✅</h2><p style="font-size:22px;color:#4d6e8e;font-weight:850;margin:0">שמרו את שני הקישורים האלה. אפשר לשלוח אותם בוואטסאפ או במייל.</p><div class="portalLinkCard"><h3>קישור לטאבלט / מסך המטופל/ת</h3><p>פותחים בטאבלט שנמצא בבית של המטופל/ת.</p><code>${esc(links.patient)}</code></div><div class="portalLinkCard"><h3>קישור ל-Backoffice / עריכה</h3><p>פותחים במחשב או בטלפון של בן/בת המשפחה שמעדכנים את הלוח.</p><code>${esc(links.backoffice)}</code></div><button class="btn soft portalBigButton" data-a="copyLinks">העתקת שני הקישורים</button><div class="portalTiny">Family ID: ${esc(CLOUD.boardId)}</div></div>`:""}<div class="portalTiny">אין צורך בידע טכני. אחרי יצירת הלוח, כל שינוי ב-Backoffice מתעדכן אוטומטית בטאבלט בדרך כלל תוך עד דקה.</div></div></main><div id="status" class="status"></div>`;
+  return `<main class="onboard"><div class="onboardBox"><h1>${titleText}</h1><p>ברוכים הבאים. כאן יוצרים לוח אישי למשפחה ומקבלים שני קישורים מוכנים: אחד לטאבלט של המטופל/ת ואחד לעריכה במחשב של המשפחה.</p>${missing?`<div class="ownerMissing">הגדרת בעלת הדף משפחתי עדיין חסרה. לפני שמשתפים עם משפחות, צריך להדביק פעם אחת את כתובת ה-Google Apps Script בקוד במקום OWNER_APPS_SCRIPT_URL. המשתמשים עצמם לא יצטרכו לעשות זאת.</div>`:""}<div class="portalSteps"><div class="portalStep"><div class="portalNum">1</div><div><strong>כתבו שם משפחה או שם לוח</strong><span>לדוגמה: כהן, אמא, סבתא רחל. זה רק כדי שיהיה קל לזהות את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">2</div><div><strong>לחצו על יצירת לוח</strong><span>המערכת תיצור מזהה פרטי וארוך כדי שכל משפחה תקבל לוח נפרד.</span></div></div><div class="portalStep"><div class="portalNum">3</div><div><strong>פתחו את שני הקישורים</strong><span>קישור אחד בטאבלט של המטופל/ת, וקישור אחד במחשב של מי שמנהל/ת את הלוח.</span></div></div><div class="portalStep"><div class="portalNum">4</div><div><strong>מומלץ: הוספה למסך הבית</strong><span>בטאבלט של המטופל/ת פתחו את הקישור, לחצו על תפריט השיתוף, ובחרו “הוסף למסך הבית”. כך הלוח נפתח כמו דף משפחתי, בלי שורת כתובת מבלבלת.</span></div></div></div><div class="onboardActions"><div class="onboardCard"><h2>יצירת לוח משפחתי חדש</h2><p>מתאים למשפחה שמתחילה עכשיו.</p><input id="newFamilyName" placeholder="שם משפחה / שם המטופלת" autocomplete="off"><button class="btn blue portalBigButton" data-a="createBoard" ${missing?"disabled":""}>יצירת לוח וקבלת קישורים</button></div><div class="onboardCard"><h2>כניסה ללוח קיים</h2><p>אם כבר קיבלתם קישור או Family ID, הדביקו אותו כאן.</p><input id="joinBoardInput" placeholder="הדבקת קישור או Family ID" dir="ltr"><button class="btn green portalBigButton" data-a="joinBoard">כניסה ללוח</button></div></div>${existing?`<div class="portalLinksNice"><h2 style="margin:0 0 8px;font-size:32px">הלוח מוכן ✅</h2><p style="font-size:22px;color:#4d6e8e;font-weight:850;margin:0">שמרו את שני הקישורים האלה. אפשר לשלוח אותם בוואטסאפ או במייל.</p><div class="portalLinkCard"><h3>קישור לטאבלט / מסך המטופל/ת</h3><p>פותחים בטאבלט שנמצא בבית של המטופל/ת.</p><code class="copyableCode" data-copy-text="${esc(links.patient)}" title="לחיצה להעתקה">${esc(links.patient)}</code><div class="copyHint">לחיצה על הקישור מעתיקה אותו</div></div><div class="portalLinkCard"><h3>קישור ל-Backoffice / עריכה</h3><p>פותחים במחשב או בטלפון של בן/בת המשפחה שמעדכנים את הלוח.</p><code class="copyableCode" data-copy-text="${esc(links.backoffice)}" title="לחיצה להעתקה">${esc(links.backoffice)}</code><div class="copyHint">לחיצה על הקישור מעתיקה אותו</div></div><button class="btn soft portalBigButton" data-a="copyLinks">העתקת שני הקישורים</button><div class="portalTiny">Family ID: <code class="copyableCode" data-copy-text="${esc(CLOUD.boardId)}" title="לחיצה להעתקה">${esc(CLOUD.boardId)}</code></div></div>`:""}<div class="portalTiny">אין צורך בידע טכני. אחרי יצירת הלוח, כל שינוי ב-Backoffice מתעדכן אוטומטית בטאבלט בדרך כלל תוך עד דקה.</div></div></main><div id="status" class="status"></div>`;
 }
 
 function sendHeartbeat(){
@@ -932,7 +1020,7 @@ function youtubeEmbed(url){
 
 
 let now=new Date(),tab=new URLSearchParams(location.search).get("tab")||"profile";
-function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="soft" data-a="sendFamilyWhatsapp" style="background:#25D366;color:white;font-weight:1000">🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי</button><button class="green" data-a="saveAll">שמירה</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
+function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="soft" data-a="sendFamilyWhatsapp" style="background:#25D366;color:white;font-weight:1000">🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי</button><button id="saveAllBtn" class="green" data-a="saveAll">💾 שמירת כל השינויים</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
 function tabs(){const items=[["profile","פרופיל"],["map","מפת עריכה"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["privateCloud","ענן פרטי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
 function input(label,path,val,type="text"){return`<label>${esc(label)}<input data-path="${esc(path)}" type="${type}" value="${esc(val)}"></label>`}
 function textarea(label,path,val){return`<label>${esc(label)}<textarea data-path="${esc(path)}">${esc(val)}</textarea></label>`}
@@ -1179,8 +1267,13 @@ function voice(){
   data.voiceStorage=data.voiceStorage||{mode:"family",folderId:privateDriveFolderForVoice()||"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
   const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
-  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn soft" data-a="stopPlayback">עצירת השמעה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
-  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button><button class="btn soft" data-a="stopPlayback">עצירת כל השמעה</button><button class="btn soft" data-a="openVoiceFolder">פתיחת תיקיית ההקלטות בדרייב</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
+  const blocks=keys.map(key=>{
+    const saved=voiceHas(key);
+    const recording=voiceRecordingKey===key;
+    const audio=saved?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:"";
+    return `<div class="voice-card voiceBox"><div class="voice-card-head"><div class="voice-card-title"><strong>🎙️ ${voiceLabel(key)}</strong><span>${esc(voiceHint(key))}</span></div><div class="voiceStatus ${recording?"recording":""}">${recording?"● מקליט עכשיו — עד "+maxSeconds+" שניות":(saved?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div></div>${saved&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div>`:""}${audio}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">🎙️ התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">⏹️ עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">▶️ השמעה לבדיקה</button><button type="button" class="btn soft" data-a="stopPlayback">עצירת השמעה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">🗑️ מחיקה</button></div></div>`;
+  }).join("");
+  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>אם משתמשים בענן פרטי של המשפחה — אין צורך לשתף את התיקייה עם מנהלת האתר. מדביקים כאן את קישור תיקיית ה-Drive של המשפחה. הקבצים נשמרים בחשבון Google שמריץ את ה-Apps Script. רק אם משתמשים ב-Apps Script של מנהלת האתר, התיקייה צריכה להיות נגישה לחשבון שלה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של חשבון ה-Google שמריץ את ה-Apps Script — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button><button class="btn soft" data-a="stopPlayback">עצירת כל השמעה</button><button class="btn soft" data-a="openVoiceFolder">פתיחת תיקיית ההקלטות בדרייב</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
 }
 async function startVoice(key){
   try{
@@ -1527,7 +1620,51 @@ function notifyParentRoute(tabName){
   }catch{}
 }
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+
+function setSavingButtons(active,label){
+  const buttons=[...document.querySelectorAll('[data-a="saveAll"],[data-a="saveInputs"]')];
+  buttons.forEach(btn=>{
+    if(!btn.dataset.originalText)btn.dataset.originalText=btn.textContent;
+    btn.disabled=!!active;
+    btn.classList.toggle("is-saving",!!active);
+    btn.classList.toggle("savePulse",!!active);
+    if(active)btn.textContent=label||"⏳ שומר נתונים לענן...";
+    else{
+      btn.textContent=label||btn.dataset.originalText||"שמירה";
+      setTimeout(()=>{if(btn.dataset.originalText)btn.textContent=btn.dataset.originalText},1800);
+    }
+  });
+}
+function copyQuickText(text,msg="הועתק! אפשר להדביק בווטסאפ"){
+  text=String(text||"").trim();
+  if(!text)return;
+  try{
+    navigator.clipboard.writeText(text);
+    showToast?.(msg,"ok");
+    showStatus?.(msg);
+  }catch{
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      showToast?.(msg,"ok");
+    }catch{
+      prompt("העתקה ידנית:",text);
+    }
+  }
+}
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-copy-text]");
+  if(!el)return;
+  e.preventDefault();
+  e.stopPropagation();
+  copyQuickText(el.getAttribute("data-copy-text"));
+},true);
+
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll"){saveInputs();return}if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);
 const __backofficeRenderBase=render;
 render=function(){
@@ -1552,9 +1689,7 @@ render();
 
 /* BACKOFFICE_TAB_URL_FIX_V3 */
 
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("../sw.js").catch(()=>{}));
-}
+
 
 
 /* FULL_VOICE_BACKOFFICE_FIX_V4 */
@@ -1603,12 +1738,12 @@ setTimeout(()=>{
 
 /* PRIVATE_FAMILY_CLOUD_V17_BACKOFFICE */
 
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    const swPath=location.pathname.includes("/backoffice/")?"../sw.js":"./sw.js";
-    navigator.serviceWorker.register(swPath).catch(()=>{});
-  });
-}
+
 
 /* FINAL_PWA_ROUTER_FIX_V18_BACKOFFICE */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("../sw.js").catch(()=>{}));
+}
+
+/* CLEAN_PRIVATE_PWA_V19_BACKOFFICE */
 </script></body></html>

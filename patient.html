@@ -572,6 +572,79 @@ body{
   font-weight:1000;
 }
 
+
+/* UI_POLISH_V20_PATIENT */
+.memphoto img,
+.memory-image-container img{
+  transition:opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
+  animation:memorySoftFade 1.2s ease-in-out both;
+}
+@keyframes memorySoftFade{
+  from{opacity:.18;transform:scale(1.012)}
+  to{opacity:1;transform:scale(1)}
+}
+
+body.bg-morning{
+  background:
+    radial-gradient(circle at 18% 10%,rgba(255,244,205,.86),transparent 34%),
+    linear-gradient(135deg,#fff9e6,#eaf5f0) !important;
+}
+body.bg-day{
+  background:
+    radial-gradient(circle at 82% 8%,rgba(200,230,255,.85),transparent 36%),
+    radial-gradient(circle at 8% 88%,rgba(219,241,255,.85),transparent 34%),
+    linear-gradient(135deg,#eef7ff,#e5f1ff) !important;
+}
+body.bg-evening{
+  background:
+    radial-gradient(circle at 78% 16%,rgba(255,222,177,.70),transparent 34%),
+    linear-gradient(135deg,#f7efe4,#e7f2fb) !important;
+}
+body.bg-night{
+  --ink:#eef8ff;
+  --muted:#c7d9e8;
+  --card:#162a3b;
+  --line:#31506b;
+  --soft:#1d3a52;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(74,117,154,.34),transparent 42%),
+    linear-gradient(135deg,#111a24,#1a2636) !important;
+  color:#eef8ff;
+}
+body.bg-night .shell .card,
+body.bg-night .shell .card.warm,
+body.bg-night .shell .card.green,
+body.bg-night .shell .card.blue,
+body.bg-night .shell .card.rose,
+body.bg-night .shell .card.lav{
+  background:rgba(22,42,59,.96) !important;
+  color:#eef8ff !important;
+}
+body.bg-night .shell .contact,
+body.bg-night .shell .row,
+body.bg-night .shell .nowtile,
+body.bg-night .shell .summarybox{
+  background:rgba(22,42,59,.92) !important;
+  color:#eef8ff !important;
+  border-color:#31506b !important;
+}
+
+.schedule-item.is-done,
+.nowtile.is-done{
+  opacity:.54;
+  filter:grayscale(38%);
+  border-inline-start:6px solid var(--muted) !important;
+}
+.schedule-item.is-done .medium,
+.nowtile.is-done .big{
+  text-decoration:line-through;
+  color:var(--muted) !important;
+}
+.schedule-item.is-done .emoji,
+.nowtile.is-done .emoji{
+  opacity:.65;
+}
+
 </style><link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1201,13 +1274,16 @@ function markActivity(){lastActivity=Date.now();if(screensaver){screensaver=fals
 function header(){const p=dayPart(now),tm=`${two(now.getHours())}:${two(now.getMinutes())}`,th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">${p.emoji} ${p.label}</div><h1 class="h1">שלום ${esc(data.person.firstName)}</h1><p class="lead">${esc(p.sentence)}</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${tm}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">היום</div>${weatherHtml()}${progress(now)}</div></div><nav class="nav no-print"><a class="soft" href="./?mode=backoffice">⚙️ ניהול</a><button class="warm" data-a="calm" data-allow-locked>🌿 אני מבולבלת / צריכה רגע</button>${data.settings.musicUrl?`<button class="soft" data-a="music" data-allow-locked>🎵 ${esc(data.settings.musicButtonLabel||"שירים")}</button>`:""}<button data-a="print" data-allow-locked>🖨️ הדפסה</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
 function items(){const d=now.getDay();return[...data.schedule].filter(x=>x.forPatient&&(!Array.isArray(x.days)||x.days.includes(d))).sort((a,b)=>String(a.time).localeCompare(String(b.time)))}
 function nxl(){const c=now.getHours()*60+now.getMinutes(),it=items(),f=it.filter(x=>min(x.time)>=c),past=it.filter(x=>min(x.time)<=c).slice(-1)[0];return{n:f[0]||past,x:f[1],l:f[2]}}
-function tile(label,item,current){return`<div class="nowtile ${current?"current":""}"><div class="medium" style="color:${current?"#2f6297":"#667774"}">${label}</div><div class="emoji">${esc(item?.image||(current?"🕘":"🌿"))}</div><div class="big">${esc(item?.text||"אפשר לנוח")}</div>${item?.time?`<div class="badge">${esc(item.time)}</div>`:""}</div>`}
+function tile(label,item,current){return`<div class="nowtile ${current?"current":""} ${item?.done?"is-done":""}"><div class="medium" style="color:${current?"#2f6297":"#667774"}">${label}</div><div class="emoji">${esc(item?.image||(current?"🕘":"🌿"))}</div><div class="big">${esc(item?.text||"אפשר לנוח")}</div>${item?.time?`<div class="badge">${esc(item.time)}</div>`:""}</div>`}
 function nowNext(){const x=nxl(),adv=data.stage==="advanced";return`<div class="card">${title("🕘","עכשיו / הבא / אחר כך","פחות מידע, יותר בהירות")}<div class="nowgrid">${tile("עכשיו",x.n,true)}${tile("הדבר הבא",x.x,false)}${adv?"":tile("אחר כך",x.l,false)}</div></div>`}
 function contact(c){const phone=String(c.phone||"").replace(/[^0-9+]/g,""),tel=`tel:${phone}`,qr=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(tel)}`;return`<div class="contact"><div class="contacttop"><div class="person">${avatar(c,"☎️")}<div><div style="font-size:32px;font-weight:1000">${esc(c.relation)}</div><div class="medium" style="color:#667774">${esc(c.name)}</div><div class="small">${esc(c.note)}</div></div></div><div><a class="phone" href="${tel}">${esc(c.phone)}</a>${c.videoLink?`<a class="video" target="_blank" href="${esc(c.videoLink)}">🎥 שיחת וידאו</a>`:""}</div></div><details class="details no-print"><summary>📱 אם אין סים בטאבלט — QR לחיוג</summary><div class="qr"><img src="${qr}"><div class="medium">מי שנמצא ליד המטופלת יכול לסרוק ולחייג מיד.</div></div></details></div>`}
 function phones(){const shown=data.stage==="advanced"?data.contacts.slice(0,2):data.contacts;return`<div class="card">${title("☎️","למי אפשר להתקשר?","כפתורים גדולים וברורים")}${shown.map(contact).join("")}</div>`}
 function orient(){return`<section class="section grid grid3"><div class="card warm">${title("🏠","איפה אני נמצאת?")}<div class="big"><p>אני נמצאת בבית.</p><p>${esc(data.person.address)}</p><p>${esc(data.person.city)}</p></div><div class="medium" style="margin-top:16px;background:white;color:#24312f;border-radius:24px;padding:18px">${esc(data.person.safeMessage)}</div></div><div class="card green">${title("❤️","מי אני?","מידע אישי מרגיע")}<div class="medium"><p><strong>שם:</strong> ${esc(data.person.fullName)}</p><p><strong>משפט חשוב:</strong> ${esc(data.person.identityNote)}</p></div></div><div class="card rose">${title("🛡️","אם אני לא בטוחה")}<div class="big"><p>לעצור רגע. לנשום. הכול בסדר.</p><p>${esc(data.safety.confusedMessage)}</p><p>במקרה חירום בלבד: 101</p></div></div></section>`}
 function family(){if(data.stage==="advanced")return"";return`<section class="section card">${title("👨‍👩‍👧","המשפחה הקרובה שלי","תזכורת נעימה לאנשים אהובים")}<div class="familygrid">${data.family.map(f=>`<div class="contact">${avatar(f,"❤️")}<div style="font-size:28px;font-weight:1000;margin-top:12px">${esc(f.relation)}</div><div class="big">${esc(f.name)}</div><div class="medium" style="color:#667774">${esc(f.city)}</div><div class="small">${esc(f.note)}</div></div>`).join("")}</div></section>`}
-function daily(){if(data.stage!=="early")return"";return`<section class="section card">${title("📅","מה עושים היום?")} ${items().map(i=>`<div class="row"><div class="person"><button class="btn soft no-print" data-a="done" data-id="${i.id}">${i.done?"בוצע ✅":"סימון"}</button><div class="emoji" style="font-size:44px;margin:0">${esc(i.image)}</div><div class="medium" style="${i.done?"text-decoration:line-through;color:#999":""}"><strong>${esc(i.time)}</strong> — ${esc(i.text)}</div></div></div>`).join("")}</section>`}
+function daily(){
+  if(data.stage!=="early")return"";
+  return`<section class="section card">${title("📅","מה עושים היום?")} ${items().map(i=>`<div class="row schedule-item ${i.done?"is-done":""}"><div class="person"><button class="btn soft no-print" data-a="done" data-id="${i.id}">${i.done?"בוצע ✅":"סימון"}</button><div class="emoji" style="font-size:44px;margin:0">${esc(i.image)}</div><div class="medium"><strong>${esc(i.time)}</strong> — ${esc(i.text)}</div></div></div>`).join("")}</section>`;
+}
 
 function calmHtml(){
   if(!calm)return"";
@@ -1232,7 +1308,17 @@ if(typeof livePingHtml!=="function")window.livePingHtml=()=>"";
 if(typeof screensaverHtml!=="function")window.screensaverHtml=()=>""; 
 if(typeof nightHtml!=="function")window.nightHtml=()=>""; 
 
-function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${pingHtml()}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${musicHtml()}${calmHtml()}${pingHtml()}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}<footer class="footer no-print">לוח רגוע למחלות שכחה · לעריכה: Backoffice</footer></div><div id="status" class="status"></div>`}
+
+function updateBackgroundByTime(){
+  const h=new Date().getHours();
+  document.body.classList.remove("bg-morning","bg-day","bg-evening","bg-night");
+  if(h>=6 && h<12)document.body.classList.add("bg-morning");
+  else if(h>=12 && h<18)document.body.classList.add("bg-day");
+  else if(h>=18 && h<22)document.body.classList.add("bg-evening");
+  else document.body.classList.add("bg-night");
+}
+
+function render(){updateBackgroundByTime();if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="patient";app.innerHTML=onboardingHtml("patient");}return}if(data.care.date!==today()){data.care={...DEFAULT.care,date:today()};save()}const absoluteNight=data.settings.nightModeEnabled&&timeInRange(now,data.settings.nightStart,data.settings.nightEnd)&&Date.now()>forceDayUntil;if(absoluteNight&&!data.livePing?.ack){document.getElementById("app").innerHTML=`${statusBadges()}${pingHtml()}${nightScreen()}`;return}if(absoluteNight){document.getElementById("app").innerHTML=statusBadges()+nightScreen();return}document.getElementById("app").innerHTML=`${statusBadges()}${musicHtml()}${calmHtml()}${pingHtml()}${screensaver?memories():""}<div class="shell">${header()}${data.stage==="advanced"?`<section class="section grid">${nowNext()}${phones()}<div class="card warm"><div class="big">${esc(data.safety.confusedMessage)}</div></div></section>`:`${orient()}<section class="section grid wide">${nowNext()}${phones()}</section>${daily()}${family()}`}<footer class="footer no-print">לוח רגוע למחלות שכחה · לעריכה: Backoffice</footer></div><div id="status" class="status"></div>`}
 function speakCalm(){playFamilyVoice("calm",calmText())}
 function checkAutomation(){const current=nxl().n;const id=current?String(current.id):"";if(id&&lastNowId&&id!==lastNowId&&data.settings.anchorChime&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd))chime("soft");if(id&&id!==lastNowId){lastNowId=id;localStorage.setItem("luach_last_now_id",id)}const p=data.livePing;if(p&&!p.ack&&String(p.id)!==lastPingId){lastPingId=String(p.id);localStorage.setItem("luach_last_ping_id",lastPingId);if(data.settings.livePingChime)chime("ping")}if(data.settings.screensaverEnabled&&!calm&&!data.livePing&&!timeInRange(now,data.settings.nightStart,data.settings.nightEnd)){const idle=Date.now()-lastActivity;if(idle>Number(data.settings.screensaverMinutes||5)*60000&&!screensaver){screensaver=true;render()}}}
 
@@ -1389,4 +1475,6 @@ if("serviceWorker" in navigator){
 /* PRIVATE_FAMILY_CLOUD_V17_PATIENT */
 
 /* FINAL_PWA_ROUTER_FIX_V18_PATIENT */
+
+/* CLEAN_PRIVATE_PWA_V19_PATIENT */
 </script></body></html>

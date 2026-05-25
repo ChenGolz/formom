@@ -1,7 +1,5 @@
-const CACHE_NAME="family-clock-v18-final-pwa-router-fix";
+const CACHE_NAME="family-clock-v20-ui-polish";
 
-// CORE_FILES contains only stable root paths that should exist on GitHub Pages.
-// Optional files are cached best-effort and never block PWA installation.
 const CORE_FILES=[
   "./",
   "./index.html",
@@ -14,9 +12,8 @@ const CORE_FILES=[
   "./favicon.ico"
 ];
 
+// Optional files are cached best-effort only and never block PWA installation.
 const OPTIONAL_FILES=[
-  "./backoffice/",
-  "./backoffice/index.html",
   "./README.md"
 ];
 
@@ -48,6 +45,7 @@ self.addEventListener("fetch",event=>{
 
   const url=new URL(req.url);
 
+  // Live APIs and embedded media stay network-first / uncached.
   if(
     url.hostname.includes("script.google") ||
     url.hostname.includes("googleusercontent") ||
@@ -77,4 +75,6 @@ self.addEventListener("fetch",event=>{
   );
 });
 
-/* FINAL_PWA_ROUTER_FIX_V18_SW */
+/* CLEAN_PRIVATE_PWA_V19_SW */
+
+/* UI_POLISH_V20_SW */
