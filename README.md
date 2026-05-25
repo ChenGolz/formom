@@ -548,3 +548,35 @@ Ctrl+U ולחפש:
 - backoffice/index.html
 - boindex.html
 - sw.js
+
+
+---
+
+# V23 — Perfect PWA Router Check
+
+בוצעו ונבדקו 3 התיקונים הקריטיים:
+
+1. `sw.js`
+   - `CACHE_NAME="family-clock-v23-perfect-pwa-router"`
+   - `CORE_FILES` כולל רק:
+     `./`, `index.html`, `patient.html`, `boindex.html`, `manifest.json`, icons, assets, favicon.
+   - אין `backoffice/`, אין `backoffice/index.html`, ואין קובץ עברי בתוך `CORE_FILES`.
+
+2. `boindex.html`
+   - רישום Service Worker הוא בדיוק:
+     `navigator.serviceWorker.register("./sw.js")`
+
+3. `index.html`
+   - `openMode` ו-`openVoice` מעדכנים את ה-URL של חלון האב דרך `history.pushState`.
+   - הניהול נטען דרך `./boindex.html`.
+
+בדיקה:
+Ctrl+U ולחפש:
+`PERFECT_PWA_ROUTER_V23_INDEX`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html
+- sw.js

@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-v22-hard-ping-fallback";
+const CACHE_NAME="family-clock-v23-perfect-pwa-router";
 
 const CORE_FILES=[
   "./",
@@ -12,7 +12,7 @@ const CORE_FILES=[
   "./favicon.ico"
 ];
 
-// Optional files are cached best-effort only and never block PWA installation.
+// Optional files are best-effort only and never block PWA installation.
 const OPTIONAL_FILES=[
   "./README.md"
 ];
@@ -45,7 +45,7 @@ self.addEventListener("fetch",event=>{
 
   const url=new URL(req.url);
 
-  // Live APIs and embedded media stay network-first / uncached.
+  // Live APIs and embedded media must not be cached.
   if(
     url.hostname.includes("script.google") ||
     url.hostname.includes("googleusercontent") ||
@@ -75,10 +75,4 @@ self.addEventListener("fetch",event=>{
   );
 });
 
-/* CLEAN_PRIVATE_PWA_V19_SW */
-
-/* UI_POLISH_V20_SW */
-
-/* PINGHTML_FIX_V21_SW */
-
-/* HARD_PING_FALLBACK_V22_SW */
+/* PERFECT_PWA_ROUTER_V23_SW */

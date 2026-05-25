@@ -1741,13 +1741,16 @@ setTimeout(()=>{
 
 
 /* FINAL_PWA_ROUTER_FIX_V18_BACKOFFICE */
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("../sw.js").catch(()=>{}));
-}
+
 
 /* CLEAN_PRIVATE_PWA_V19_BACKOFFICE */
 
 /* PINGHTML_FIX_V21_BACKOFFICE */
 
 /* HARD_PING_FALLBACK_V22_BACKOFFICE */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("../sw.js").catch(()=>{}));
+}
+
+/* PERFECT_PWA_ROUTER_V23_BACKOFFICE */
 </script></body></html>
