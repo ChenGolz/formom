@@ -339,3 +339,27 @@ ReferenceError: calmHtml is not defined
 בדיקה:
 Ctrl+U ולחפש:
 `CALM_RENDER_FIX_V15_PATIENT`
+
+
+---
+
+# תיקון V16 — PWA, אודיו וניווט iframe
+
+כולל:
+- Service Worker בטוח יותר: אין תלות בקובץ עברי או בקובץ חסר כדי להתקין PWA.
+- `CORE_FILES` קטן ומבוסס על קבצים בטוחים בלבד.
+- התקנת cache סלחנית: קובץ חסר לא מפיל את כל ה-PWA.
+- שכבת פתיחה במסך המטופל/ת: `הפעלת השעון המשפחתי`, כדי לשחרר חסימת אודיו בדפדפנים.
+- סנכרון URL בין Backoffice בתוך iframe לבין החלון הראשי באמצעות postMessage.
+- הגנת מזג אוויר: אם Open-Meteo נכשל, השעון ממשיך לעבוד בלי מזג אוויר.
+- הקובץ `.nojekyll` הוסר מה-ZIP כי GitHub לא נתן להעלות אותו דרך הממשק.
+
+בדיקה:
+Ctrl+U ולחפש:
+`PWA_AUDIO_ROUTER_FIX_V16_INDEX`
+
+בדיקת תחביר הורצה על:
+- index.html
+- patient.html
+- backoffice/index.html
+- boindex.html

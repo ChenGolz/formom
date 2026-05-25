@@ -140,7 +140,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","calm-render-fix-v15");
+  url.searchParams.set("v","pwa-audio-router-fix-v16");
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
@@ -148,13 +148,13 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","calm-render-fix-v15");
+  params.set("v","pwa-audio-router-fix-v16");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
   const board=currentBoard();
   if(!board)return render();
-  setTopUrl(board,mode,tab);
+  setTopUrl(board,mode,tab);updateBrowserUrl(mode,tab);
   const f=document.getElementById("screenFrame");
   if(f)f.src=frameSrc(mode,board,tab);
   document.querySelectorAll("[data-mode-btn]").forEach(b=>b.classList.toggle("active", b.dataset.modeBtn===mode));
@@ -167,7 +167,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","calm-render-fix-v15");
+  url.searchParams.set("v","pwa-audio-router-fix-v16");
   return url.toString();
 }
 function hardOpenVoice(){
@@ -179,6 +179,25 @@ function hardOpenBackoffice(){
 function hardOpenPatient(){
   location.href=hardModeUrl("patient","");
 }
+
+
+function updateBrowserUrl(mode,tab=""){
+  const board=currentBoard();
+  if(!board)return;
+  const url=new URL(location.href);
+  url.searchParams.set("board",board);
+  url.searchParams.set("mode",mode||"patient");
+  if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
+  url.searchParams.set("v","pwa-audio-router-fix-v16");
+  history.pushState({board,mode,tab},"",url.toString());
+}
+window.addEventListener("message",event=>{
+  const msg=event.data||{};
+  if(!msg || msg.type!=="family-clock-route")return;
+  const mode=msg.mode||currentMode();
+  const tab=msg.tab||"";
+  updateBrowserUrl(mode,tab);
+},false);
 
 function openMode(mode){loadFrame(mode,"")}
 function openVoice(){loadFrame("backoffice","voice")}
@@ -268,6 +287,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* STABLE_UI_FIX_V14_INDEX */
 
 /* CALM_RENDER_FIX_V15_INDEX */
+
+/* PWA_AUDIO_ROUTER_FIX_V16_INDEX */
 </script>
 </body>
 </html>
