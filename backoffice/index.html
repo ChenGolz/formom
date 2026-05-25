@@ -918,15 +918,73 @@ function cloud(){const links=boardLinksFor(CLOUD.boardId||"");return`<section cl
 function preview(){const meds=data.medications.filter(m=>m.taken).length,water=["waterMorning","waterNoon","waterEvening"].filter(k=>data.care[k]).length;return`<section class="section card blue"><div class="summary"><div class="summarybox"><div class="small">מצב תצוגה</div><div class="big2">${esc(data.stage)}</div></div><div class="summarybox"><div class="small">משימות</div><div class="big2">${data.schedule.length}</div></div><div class="summarybox"><div class="small">תרופות שסומנו</div><div class="big2">${meds}/${data.medications.length}</div></div><div class="summarybox"><div class="small">שתייה</div><div class="big2">${water}/3</div></div></div></section>`}
 
 
-async function postToAppsScript(payload){
-  if(!cloudOn())throw new Error("אין חיבור לענן");
-  await fetch(apiBase(),{
-    method:"POST",
-    mode:"no-cors",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(payload)
+function postToAppsScript(payload){
+  return new Promise((resolve,reject)=>{
+    if(!cloudOn())return reject(new Error("אין חיבור לענן"));
+    const frameName="apps_post_"+Date.now()+"_"+Math.floor(Math.random()*99999);
+    const iframe=document.createElement("iframe");
+    iframe.name=frameName;
+    iframe.style.display="none";
+    document.body.appendChild(iframe);
+
+    const form=document.createElement("form");
+    form.method="POST";
+    form.action=apiBase();
+    form.target=frameName;
+    form.style.display="none";
+    form.enctype="application/x-www-form-urlencoded";
+
+    const input=document.createElement("input");
+    input.type="hidden";
+    input.name="payload";
+    input.value=JSON.stringify(payload);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    let done=false;
+    const cleanup=()=>{
+      setTimeout(()=>{try{form.remove();iframe.remove()}catch{}},500);
+    };
+    iframe.onload=()=>{
+      if(done)return;
+      done=true;
+      cleanup();
+      resolve({ok:true});
+    };
+    setTimeout(()=>{
+      if(done)return;
+      done=true;
+      cleanup();
+      // Apps Script sometimes redirects slowly. The submit usually still succeeds.
+      resolve({ok:true, timeout:true});
+    },4500);
+
+    try{form.submit()}catch(err){
+      cleanup();
+      reject(err);
+    }
   });
 }
+
+function driveFileIdFromVoiceValue(src){
+  src=String(src||"");
+  if(src.startsWith("drive:"))return src.slice(6);
+  const m=src.match(/[-\w]{25,}/);
+  return m?m[0]:"";
+}
+function driveAudioUrl(fileId){
+  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+}
+function voiceAudioSource(key){
+  const src=data.voiceRecordings&&data.voiceRecordings[key];
+  if(src&&String(src).startsWith("drive:")){
+    const id=driveFileIdFromVoiceValue(src);
+    if(id&&id.length>20)return driveAudioUrl(id);
+  }
+  if(window.__localVoiceCache&&window.__localVoiceCache[key])return window.__localVoiceCache[key];
+  return src||"";
+}
+
 function folderIdFromUrl(value){
   value=String(value||"").trim();
   const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
@@ -951,8 +1009,8 @@ function voice(){
   data.voiceStorage=data.voiceStorage||{mode:"owner",folderId:"",maxSeconds:45};
   const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
-  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${data.voiceRecordings[key]}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
-  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.</div>${blocks}</section>`;
+  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${data.voiceRecordings[key]}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
+  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
 }
 async function startVoice(key){
   try{
@@ -974,15 +1032,17 @@ async function startVoice(key){
       const reader=new FileReader();
       reader.onload=async()=>{
         const result=reader.result;
+        window.__localVoiceCache=window.__localVoiceCache||{};
+        window.__localVoiceCache[key]=result;
         try{
           showStatus("שומרת הקלטה בדרייב...");
           const folderId=data.voiceStorage.mode==="family"?folderIdFromUrl(data.voiceStorage.folderId):"";
           await postToAppsScript({action:"saveAudio",boardId:CLOUD.boardId,key,dataUrl:result,folderId});
           data.voiceRecordings=data.voiceRecordings||{};
-          data.voiceRecordings[key]="drive:"+Date.now();
+          data.voiceRecordings[key]=window.__localVoiceCache[key]||"";
           save();
           showStatus("ההקלטה נשמרה בדרייב");
-          setTimeout(()=>pullCloud().finally(()=>render()),1400);
+          setTimeout(()=>pullCloud().finally(()=>render()),2500);
         }catch(err){
           alert("לא הצלחתי לשמור את ההקלטה בדרייב. בדקי הרשאות Apps Script ותיקיית Drive.");
           voiceRecordingKey="";
@@ -1002,23 +1062,14 @@ async function startVoice(key){
 }
 function stopVoice(){if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop()}
 async function playVoice(key){
-  const src=data.voiceRecordings&&data.voiceRecordings[key];
+  const src=voiceAudioSource(key);
   if(!src)return alert("אין הקלטה שמורה עדיין");
-  if(String(src).startsWith("drive:")){
-    const payload=await new Promise((resolve,reject)=>{
-      const cb="bo_audio_"+Date.now()+"_"+Math.floor(Math.random()*99999);
-      const script=document.createElement("script");
-      const sep=apiBase().includes("?")?"&":"?";
-      window[cb]=(p)=>{delete window[cb];script.remove();resolve(p)};
-      script.onerror=()=>{delete window[cb];script.remove();reject(new Error("audio failed"))};
-      script.src=`${apiBase()}${sep}action=audio&board=${encodeURIComponent(CLOUD.boardId)}&key=${encodeURIComponent(key)}&callback=${encodeURIComponent(cb)}&t=${Date.now()}`;
-      document.head.appendChild(script);
-    });
-    if(payload&&payload.ok&&payload.dataUrl)new Audio(payload.dataUrl).play();
-    else alert("לא הצלחתי לטעון את ההקלטה מהדרייב");
-    return;
+  try{
+    const audio=new Audio(src);
+    await audio.play();
+  }catch(err){
+    alert("לא הצלחתי להשמיע את ההקלטה. אם שמרת עכשיו, חכי כמה שניות ולחצי שוב. אם זה חוזר, בדקי שקוד Apps Script עודכן ושהקובץ בדרייב משותף לצפייה עם קישור.");
   }
-  new Audio(src).play();
 }
 async function deleteVoice(key){
   if(!confirm("למחוק את ההקלטה?"))return;
@@ -1174,4 +1225,6 @@ if("serviceWorker" in navigator){
 
 
 /* FULL_VOICE_BACKOFFICE_FIX_V4 */
+/* BACKOFFICE_FORM_POST_AUDIO_FIX_V5 */
+/* BACKOFFICE_DRIVE_PLAYBACK_FIX_V6 */
 </script></body></html>

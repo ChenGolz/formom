@@ -135,12 +135,20 @@ function oneLink(board){
   const url=new URL(location.href);
   return url.origin+url.pathname+"?board="+encodeURIComponent(board);
 }
+function modeUrl(board,mode,tab=""){
+  const url=new URL(location.href);
+  url.searchParams.set("board",board);
+  url.searchParams.set("mode",mode);
+  if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
+  url.searchParams.set("v","drive-playback-fix-v6");
+  return url.pathname+url.search;
+}
 function frameSrc(mode,board,tab=""){
   const base=mode==="backoffice"?"./backoffice/":"./patient.html";
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","voice-fix-v4");
+  params.set("v","drive-playback-fix-v6");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
@@ -201,7 +209,7 @@ function appShell(){
   const board=currentBoard();
   const mode=currentMode();
   const tab=currentTab();
-  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" data-mode-btn="patient" onclick="openMode('patient')">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" data-mode-btn="backoffice" onclick="openMode('backoffice')">⚙️ ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" data-voice-btn onclick="openVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
+  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" data-mode-btn="patient" onclick="openMode('patient')">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" data-mode-btn="backoffice" onclick="openMode('backoffice')">⚙️ ניהול</button><a class="btn voice ${tab==="voice"?"active":""}" data-voice-btn href="${modeUrl(board,'backoffice','voice')}" onclick="event.preventDefault();openVoice()">🎙️ קול משפחתי</a><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
 }
 function showHomeHelp(){
   if(localStorage.getItem(HOME_HELP_KEY))return;
@@ -220,6 +228,8 @@ render();
 setTimeout(showHomeHelp,900);
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
 /* FULL_VOICE_FIX_V4 */
+/* TOP_VOICE_LINK_FIX_V5 */
+/* DRIVE_PLAYBACK_FIX_V6 */
 </script>
 </body>
 </html>

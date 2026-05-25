@@ -1,4 +1,4 @@
-const CACHE_NAME="family-clock-full-drive-voice-v1";
+const CACHE_NAME="family-clock-drive-playback-fix-v6";
 const CORE_FILES=[
   "./",
   "./index.html",

@@ -688,19 +688,23 @@ function jsonpAudio(key){
     document.head.appendChild(script);
   });
 }
+
+function driveFileIdFromVoiceValue(src){
+  src=String(src||"");
+  if(src.startsWith("drive:"))return src.slice(6);
+  const m=src.match(/[-\w]{25,}/);
+  return m?m[0]:"";
+}
+function driveAudioUrl(fileId){
+  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+}
+
 async function resolveFamilyVoiceSource(key){
-  const src=await resolveFamilyVoiceSource(key);
+  const src=data.voiceRecordings&&data.voiceRecordings[key];
   if(!src)return "";
   if(String(src).startsWith("drive:")){
-    try{
-      if(!window.__audioCache)window.__audioCache={};
-      if(window.__audioCache[key])return window.__audioCache[key];
-      const payload=await jsonpAudio(key);
-      if(payload&&payload.ok&&payload.dataUrl){
-        window.__audioCache[key]=payload.dataUrl;
-        return payload.dataUrl;
-      }
-    }catch(e){}
+    const id=driveFileIdFromVoiceValue(src);
+    if(id&&id.length>20)return driveAudioUrl(id);
     return "";
   }
   return src;
@@ -1026,4 +1030,6 @@ if("serviceWorker" in navigator){
 /* PASSIVE_CALM_FIX_V1 */
 
 /* FULL_VOICE_PATIENT_FIX_V4 */
+/* PATIENT_DRIVE_AUDIO_FIX_V5 */
+/* PATIENT_DRIVE_PLAYBACK_FIX_V6 */
 </script></body></html>

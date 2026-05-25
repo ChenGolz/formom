@@ -94,3 +94,55 @@ FULL_VOICE_FIX_V4
 saveAudio
 קבצי_קול
 ```
+
+
+---
+
+# תיקון V5 — כפתור קול משפחתי ושמירת הקלטות
+
+בגרסה זו תוקנו שני דברים:
+
+## כפתור קול משפחתי
+הכפתור העליון `🎙️ קול משפחתי` הוא עכשיו גם קישור אמיתי, לא רק JavaScript.
+אם JavaScript של הכפתור נתקע, הקישור עדיין פותח:
+`mode=backoffice&tab=voice`
+
+בדיקה:
+`Ctrl+U` ולחפש:
+`TOP_VOICE_LINK_FIX_V5`
+
+## שמירת הקלטות
+שמירת הקלטות ל-Google Drive עוברת עכשיו דרך טופס נסתר ל-Apps Script.
+זה יציב יותר מול redirect/CORS של Google.
+
+חשוב מאוד:
+צריך לעדכן Apps Script עם הקוד החדש:
+`apps-script/Code.gs`
+
+ואז:
+Deploy → Manage deployments → Edit → New version → Deploy
+
+בדיקה ב-Apps Script:
+לחפש בקוד:
+`FORM_PAYLOAD_FIX_V5`
+
+
+---
+
+# תיקון V6 — השמעת הקלטות Drive
+
+בגרסה זו כפתור `השמעה לבדיקה` כבר לא מנסה לטעון את קובץ הקול דרך Apps Script כ-Base64.
+במקום זה הוא משתמש בקישור ישיר לקובץ Google Drive:
+
+```txt
+https://drive.google.com/uc?export=download&id=FILE_ID
+```
+
+בנוסף, מיד אחרי הקלטה נשמר עותק זמני מקומי בדפדפן, כך שאפשר לבדוק את ההקלטה גם לפני שהסנכרון חזר מהענן.
+
+צריך להעלות את הקבצים החדשים וגם לעדכן Apps Script עם `apps-script/Code.gs`, ואז:
+Deploy → Manage deployments → Edit → New version → Deploy
+
+בדיקה באתר:
+Ctrl+U ולחפש:
+`DRIVE_PLAYBACK_FIX_V6`

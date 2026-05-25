@@ -1,4 +1,7 @@
 /**
+ * FORM_PAYLOAD_FIX_V5
+ * DRIVE_DIRECT_PLAYBACK_FIX_V6
+
  * השעון המשפחתי — Google Sheets + Google Drive backend
  * ------------------------------------------------------
  * גרסה מלאה:
@@ -44,7 +47,7 @@ function doGet(e) {
 function doPost(e) {
   let result;
   try {
-    const raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
+    const raw = (e && e.parameter && e.parameter.payload) ? e.parameter.payload : (e && e.postData && e.postData.contents ? e.postData.contents : '{}');
     const body = JSON.parse(raw);
 
     if (body.action === 'save') {
@@ -192,7 +195,7 @@ function getAudio_(boardId, key) {
   const file = DriveApp.getFileById(row.fileId);
   const blob = file.getBlob();
   const dataUrl = 'data:' + (row.mimeType || blob.getContentType() || 'audio/webm') + ';base64,' + Utilities.base64Encode(blob.getBytes());
-  return { ok: true, exists: true, boardId, key, dataUrl, fileId: row.fileId, updated_at: row.updatedAt || '' };
+  return { ok: true, exists: true, boardId, key, dataUrl, directUrl: driveAudioUrl_(row.fileId), fileId: row.fileId, updated_at: row.updatedAt || '' };
 }
 
 function deleteAudio_(boardId, key) {
@@ -213,6 +216,10 @@ function deleteAudio_(boardId, key) {
   }
   log_(boardId, 'deleteAudio', key + ' נמחק');
   return { ok: true, deleted: true };
+}
+
+function driveAudioUrl_(fileId) {
+  return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(fileId);
 }
 
 function resolveAudioFolder_(folderId) {
@@ -273,7 +280,7 @@ function attachAudioRefs_(boardId, value) {
     const row = findAudioRow_(boardId, key);
     if (row && row.fileId) {
       value.voiceRecordings[key] = 'drive:' + row.fileId;
-      value.voiceDriveRefs[key] = { fileId: row.fileId, updatedAt: row.updatedAt || '' };
+      value.voiceDriveRefs[key] = { fileId: row.fileId, directUrl: driveAudioUrl_(row.fileId), updatedAt: row.updatedAt || '' };
     }
   });
 }
