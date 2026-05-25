@@ -146,3 +146,52 @@ Deploy → Manage deployments → Edit → New version → Deploy
 בדיקה באתר:
 Ctrl+U ולחפש:
 `DRIVE_PLAYBACK_FIX_V6`
+
+
+---
+
+# תיקון V7 — שגיאת drive: ERR_UNKNOWN_URL_SCHEME
+
+אם בקונסול הופיעה שגיאה כמו:
+
+```txt
+Failed to load resource: drive:...
+ERR_UNKNOWN_URL_SCHEME
+```
+
+זה אומר שהדפדפן קיבל `drive:FILE_ID` במקום URL אמיתי.
+
+בגרסה זו כל `drive:FILE_ID` מומר לפני ההשמעה לכתובת תקינה:
+
+```txt
+https://drive.google.com/uc?export=download&id=FILE_ID
+```
+
+בדיקה באתר:
+Ctrl+U ולחפש:
+`DRIVE_URL_SCHEME_FIX_V7`
+
+
+---
+
+# תיקיית Drive מוגדרת מראש להקלטות
+
+בגרסה זו תיקיית ברירת המחדל להקלטות היא:
+
+```txt
+https://drive.google.com/drive/folders/1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_?usp=drive_link
+```
+
+Folder ID:
+
+```txt
+1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_
+```
+
+ב-Backoffice → קול משפחתי נוסף כפתור:
+
+```txt
+פתיחת תיקיית ההקלטות בדרייב
+```
+
+חשוב: התיקייה צריכה להיות משותפת עם חשבון Google שמריץ את Apps Script, כלומר החשבון שבחרת בו ב-Deploy כ-Execute as: Me.

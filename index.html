@@ -140,7 +140,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","drive-playback-fix-v6");
+  url.searchParams.set("v","folder-preset-fix-v8");
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
@@ -148,7 +148,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","drive-playback-fix-v6");
+  params.set("v","folder-preset-fix-v8");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
@@ -230,6 +230,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* FULL_VOICE_FIX_V4 */
 /* TOP_VOICE_LINK_FIX_V5 */
 /* DRIVE_PLAYBACK_FIX_V6 */
+
+/* DRIVE_URL_SCHEME_FIX_V7 */
+
+/* FOLDER_PRESET_FIX_V8 */
 </script>
 </body>
 </html>

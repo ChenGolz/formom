@@ -599,7 +599,7 @@ const DEFAULT={
   settings:{screensaverEnabled:true,screensaverMinutes:5,memoryIntervalSeconds:12,anchorChime:true,livePingChime:true,nightModeEnabled:true,nightStart:"22:00",nightEnd:"06:00",wakeLockEnabled:true,weatherEnabled:true,weatherLat:"32.0853",weatherLon:"34.7818",weatherCity:"תל אביב",weatherAutoFromProfile:true,musicUrl:"",musicButtonLabel:"לשמוע שירים שאני אוהבת",heartbeatEnabled:true,patientPassiveLock:true},
   livePing:null,
   voiceRecordings:{calm:"",confused:"",night:""},
-  voiceStorage:{mode:"owner",folderId:"",maxSeconds:45},
+  voiceStorage:{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45},
   person:{firstName:"רחל",fullName:"רחל כהן",address:"רחוב הדוגמה 10, דירה 4",city:"תל אביב",safeMessage:"זה הבית שלי. המשפחה יודעת איפה אני. אין צורך לצאת לבד. אם אני צריכה עזרה, אפשר להתקשר לנועה.",identityNote:"אני רחל. אני אהובה. המשפחה שלי דואגת לי ומתקשרת אליי. היום אפשר להתקדם לאט, דבר אחד בכל פעם.",calmingTips:"מוזיקה שקטה, תה, תמונות משפחה ושיחה קצרה עם נועה.",riskNotes:"רעש, חושך, רעב, כאב או יותר מדי אנשים עלולים לבלבל."},
   schedule:[{id:1,time:"08:00",text:"לקום, לשטוף פנים ולהתלבש",image:"☀️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:2,time:"09:00",text:"ארוחת בוקר",image:"🍳",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:3,time:"10:30",text:"שיחה קצרה עם המשפחה",image:"📞",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:4,time:"13:00",text:"ארוחת צהריים",image:"🍲",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:5,time:"16:00",text:"מנוחה / טלוויזיה / מוזיקה רגועה",image:"🎵",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:6,time:"19:00",text:"ארוחת ערב",image:"🍽️",days:[0,1,2,3,4,5,6],forPatient:true,done:false},{id:7,time:"21:00",text:"התארגנות לשינה",image:"🌙",days:[0,1,2,3,4,5,6],forPatient:true,done:false}],
   medications:[{id:1,time:"08:30",name:"תרופת בוקר",dose:"לפי מרשם",instructions:"אחרי אוכל",taken:false,givenBy:"",notes:""},{id:2,time:"20:30",name:"תרופת ערב",dose:"לפי מרשם",instructions:"לפני שינה",taken:false,givenBy:"",notes:""}],
@@ -985,6 +985,52 @@ function voiceAudioSource(key){
   return src||"";
 }
 
+
+function driveFileIdFromVoiceValue(src){
+  src=String(src||"");
+  if(src.startsWith("drive:"))return src.slice(6);
+  const m=src.match(/[-\w]{25,}/);
+  return m?m[0]:"";
+}
+function driveAudioUrl(fileId){
+  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+}
+function voiceAudioSource(key){
+  const src=data.voiceRecordings&&data.voiceRecordings[key];
+  if(src&&String(src).startsWith("drive:")){
+    const id=driveFileIdFromVoiceValue(src);
+    if(id&&id.length>20)return driveAudioUrl(id);
+    return "";
+  }
+  if(window.__localVoiceCache&&window.__localVoiceCache[key])return window.__localVoiceCache[key];
+  return src||"";
+}
+function safeAudioSrc(valueOrKey){
+  let src=valueOrKey;
+  if(data&&data.voiceRecordings&&data.voiceRecordings[valueOrKey])src=data.voiceRecordings[valueOrKey];
+  if(src&&String(src).startsWith("drive:")){
+    const id=driveFileIdFromVoiceValue(src);
+    return id?driveAudioUrl(id):"";
+  }
+  return src||"";
+}
+
+
+const DEFAULT_VOICE_FOLDER_ID="1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_";
+const DEFAULT_VOICE_FOLDER_URL="https://drive.google.com/drive/folders/1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_?usp=drive_link";
+function ensureDefaultVoiceFolder(){
+  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:DEFAULT_VOICE_FOLDER_ID,maxSeconds:45};
+  if(!data.voiceStorage.folderId){
+    data.voiceStorage.mode="family";
+    data.voiceStorage.folderId=DEFAULT_VOICE_FOLDER_ID;
+  }
+}
+function openVoiceFolder(){
+  ensureDefaultVoiceFolder();
+  const id=folderIdFromUrl(data.voiceStorage.folderId)||DEFAULT_VOICE_FOLDER_ID;
+  window.open(`https://drive.google.com/drive/folders/${encodeURIComponent(id)}`,"_blank");
+}
+
 function folderIdFromUrl(value){
   value=String(value||"").trim();
   const m=value.match(/\/folders\/([a-zA-Z0-9_-]+)/);
@@ -1005,19 +1051,20 @@ function voiceHint(key){
 function voiceHas(key){return !!(data.voiceRecordings&&data.voiceRecordings[key])}
 function voiceSize(key){const s=data.voiceRecordings&&data.voiceRecordings[key];return s?Math.round(s.length/1024):0}
 function voice(){
+  ensureDefaultVoiceFolder();
   data.voiceRecordings=data.voiceRecordings||{calm:"",confused:"",night:""};
-  data.voiceStorage=data.voiceStorage||{mode:"owner",folderId:"",maxSeconds:45};
+  data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
   const maxSeconds=Number(data.voiceStorage.maxSeconds||45);
   const keys=["calm","confused","night"];
-  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${data.voiceRecordings[key]}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
-  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
+  const blocks=keys.map(key=>`<div class="voiceBox"><h3>🎙️ ${voiceLabel(key)}</h3><p>${esc(voiceHint(key))}</p><div class="voiceStatus ${voiceRecordingKey===key?"recording":""}">${voiceRecordingKey===key?"● מקליט עכשיו — עד "+maxSeconds+" שניות":"מצב: "+(voiceHas(key)?"יש הקלטה שמורה ✅":"אין הקלטה עדיין")}</div>${voiceHas(key)&&!(String(data.voiceRecordings[key]).startsWith("drive:"))?`<audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}${voiceHas(key)&&String(data.voiceRecordings[key]).startsWith("drive:")?`<div class="small">הקלטה שמורה ב-Google Drive ✅</div><audio class="voiceAudio" controls src="${voiceAudioSource(key)}"></audio>`:""}<div class="actions"><button type="button" class="btn green" data-a="startVoice" data-key="${key}">התחלת הקלטה</button><button type="button" class="btn blue" data-a="stopVoice" data-key="${key}">עצירת הקלטה ושמירה</button><button type="button" class="btn soft" data-a="playVoice" data-key="${key}">השמעה לבדיקה</button><button type="button" class="btn rose" data-a="deleteVoice" data-key="${key}">מחיקת הקלטה</button></div></div>`).join("");
+  return `<section class="section card blue">${title("🎙️","קול משפחתי","מקליטים קול אמיתי של בן/בת משפחה במקום קריאת הבוט בעברית")}<div class="medium"><p>ההקלטות נשמרות עכשיו ב-Google Drive, ולכן הן יכולות להיות ארוכות יותר. בגיליון נשמר רק סימון לקובץ.</p></div><div class="driveBox"><h3>איפה לשמור הקלטות?</h3><p>ברירת המחדל: בדרייב של מנהלת האתר. אם משפחה רוצה שהקבצים יהיו בתיקייה שלה, היא יוצרת תיקייה בדרייב, משתפת אותה עם מנהלת האתר, ומדביקה כאן Folder ID או קישור לתיקייה.</p><div class="formgrid"><label>שמירת הקלטות<select data-path="voiceStorage.mode"><option value="owner" ${data.voiceStorage.mode!=="family"?"selected":""}>בדרייב של מנהלת האתר — הכי קל</option><option value="family" ${data.voiceStorage.mode==="family"?"selected":""}>בתיקיית Drive משותפת של המשפחה</option></select></label><label>Folder ID / קישור לתיקיית Drive<input data-path="voiceStorage.folderId" value="${esc(data.voiceStorage.folderId||"")}" placeholder="https://drive.google.com/drive/folders/..."></label><label>אורך הקלטה מקסימלי בשניות<input data-path="voiceStorage.maxSeconds" type="number" min="5" max="90" value="${esc(data.voiceStorage.maxSeconds||45)}"></label></div><div class="actions"><button class="btn green" data-a="saveInputs">שמירת הגדרות קול</button><button class="btn soft" data-a="openVoiceFolder">פתיחת תיקיית ההקלטות בדרייב</button></div></div><div class="voiceWarning">טיפ: גם אם אפשר להקליט עד 45–60 שניות, למצב בלבול עדיף משפט קצר, חם וברור.<br>שליחת ההקלטה מתבצעת דרך טופס נסתר ל-Google Drive כדי לעקוף בעיות הרשאות דפדפן.</div>${blocks}</section>`;
 }
 async function startVoice(key){
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){alert("הדפדפן הזה לא תומך בהקלטה. נסי Chrome/Edge ועדיף HTTPS.");return}
     if(voiceRecorder&&voiceRecorder.state==="recording")voiceRecorder.stop();
     saveInputs();
-    data.voiceStorage=data.voiceStorage||{mode:"owner",folderId:"",maxSeconds:45};
+    data.voiceStorage=data.voiceStorage||{mode:"family",folderId:"1q861AukKjnvhTPYz0BG1bL8bh9MGoJH_",maxSeconds:45};
     const maxSeconds=Math.max(5,Math.min(90,Number(data.voiceStorage.maxSeconds||45)));
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     voiceChunks=[];voiceRecordingKey=key;
@@ -1212,7 +1259,30 @@ function sendWhatsappInvite(){
   window.open(`https://wa.me/?text=${text}`,"_blank");
 }
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString())}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString())}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+
+function fixDriveAudioElements(){
+  document.querySelectorAll("audio").forEach(a=>{
+    const s=a.getAttribute("src")||"";
+    if(s.startsWith("drive:")){
+      const id=driveFileIdFromVoiceValue(s);
+      if(id)a.setAttribute("src",driveAudioUrl(id));
+      else a.removeAttribute("src");
+    }
+  });
+}
+document.addEventListener("play",e=>{
+  const a=e.target;
+  if(a&&a.tagName==="AUDIO"){
+    const s=a.getAttribute("src")||"";
+    if(s.startsWith("drive:")){
+      e.preventDefault();
+      const id=driveFileIdFromVoiceValue(s);
+      if(id){a.src=driveAudioUrl(id);a.load();setTimeout(()=>a.play().catch(()=>{}),50)}
+    }
+  }
+},true);
+
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString())}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString())}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll")saveInputs();if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);render();
 
 /* INPUT_FIX_V2_ONBOARDING_STABLE */
@@ -1227,4 +1297,10 @@ if("serviceWorker" in navigator){
 /* FULL_VOICE_BACKOFFICE_FIX_V4 */
 /* BACKOFFICE_FORM_POST_AUDIO_FIX_V5 */
 /* BACKOFFICE_DRIVE_PLAYBACK_FIX_V6 */
+
+setInterval(fixDriveAudioElements,1000);
+
+/* DRIVE_URL_SCHEME_FIX_V7 */
+
+/* FOLDER_PRESET_FIX_V8 */
 </script></body></html>
