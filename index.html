@@ -87,6 +87,66 @@ iframe{width:100%;height:calc(100vh - 76px);border:0;display:block;background:wh
 .homeHelpCard span{display:block;font-size:18px;color:#4d6e8e;font-weight:850;margin-top:6px}
 @media(max-width:760px){.homeHelpGrid{grid-template-columns:1fr}}
 
+
+/* V24_MOBILE_UX_POLISH_INDEX */
+:root{
+  --tap:48px;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  text-rendering:optimizeLegibility;
+}
+body,input,button,textarea,select{
+  font-family:"Assistant",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif !important;
+}
+button,a,.bigBtn,.btn,[role="button"]{
+  min-height:var(--tap);
+  min-width:var(--tap);
+  touch-action:manipulation;
+}
+button,.bigBtn,.btn{
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, opacity .18s ease;
+}
+button:active,.bigBtn:active,.btn:active{
+  transform:translateY(1px) scale(.99);
+}
+input,textarea,select{
+  max-width:100%;
+  font-size:18px;
+}
+img,svg,iframe{
+  max-width:100%;
+}
+.card,.portal,.shell,.panel{
+  max-width:100%;
+}
+@media (max-width:720px){
+  body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  h1{font-size:clamp(34px,10vw,54px)!important;line-height:1.05!important}
+  h2{font-size:clamp(24px,7vw,36px)!important}
+  p,.small,.portalTiny{font-size:clamp(16px,4.2vw,20px)!important;line-height:1.45!important}
+  .grid,.cards,.portalGrid{grid-template-columns:1fr!important}
+  .bigBtn,.btn,button{width:100%;margin-block:6px}
+  code,input{word-break:break-word;overflow-wrap:anywhere}
+}
+@media (prefers-color-scheme:dark){
+  body:not(.force-light){
+    background:#142033!important;
+    color:#eef8ff!important;
+  }
+  body:not(.force-light) .card,
+  body:not(.force-light) .portal,
+  body:not(.force-light) .panel{
+    background:#182a3d!important;
+    color:#eef8ff!important;
+    border-color:#31506b!important;
+  }
+}
+
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#3f84b8">
@@ -96,6 +156,20 @@ iframe{width:100%;height:calc(100vh - 76px);border:0;display:block;background:wh
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <link rel="icon" href="./favicon.ico" sizes="any">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef7ff">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="השעון המשפחתי">
+<meta property="og:description" content="לוח משפחתי עדין וברור לשגרה, זיכרונות והודעות מרגיעות.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800;900;1000&display=swap" rel="stylesheet">
+
+<!-- V24_MOBILE_UX_META_INDEX -->
 </head>
 <body>
 <div id="app"></div>
@@ -189,7 +263,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","v24-performance-accessibility-patch");
+  url.searchParams.set("v","mobile-ux-polish-v24");
   addPrivateParams(url.searchParams);
   return url.pathname+url.search;
 }
@@ -198,7 +272,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","v24-performance-accessibility-patch");
+  params.set("v","mobile-ux-polish-v24");
   addPrivateParams(params);
   return base+"?"+params.toString();
 }
@@ -218,7 +292,7 @@ function hardModeUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","v24-performance-accessibility-patch");
+  url.searchParams.set("v","mobile-ux-polish-v24");
   addPrivateParams(url.searchParams);
   return url.toString();
 }
@@ -240,7 +314,7 @@ function updateBrowserUrl(mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode||"patient");
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","v24-performance-accessibility-patch");
+  url.searchParams.set("v","mobile-ux-polish-v24");
   addPrivateParams(url.searchParams);
   history.pushState({board,mode,tab},"",url.toString());
 }

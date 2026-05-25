@@ -641,48 +641,106 @@ button.is-saving::after,
 @keyframes savePulseV20{from{transform:translateY(0)}to{transform:translateY(-1px)}}
 
 
-/* V24_CAREGIVER_ENCOURAGEMENT_PATCH */
-.caregiverEncouragement{
-  background:linear-gradient(135deg,#eef7ff,#f9fcff);
-  border:2px solid var(--line);
-  border-radius:var(--radius);
-  padding:18px;
-  margin:14px 0 18px;
-  box-shadow:0 14px 36px rgba(52,105,150,.10);
+/* V24_MOBILE_UX_POLISH_BOINDEX */
+:root{
+  --tap:48px;
 }
-.caregiverEncouragement .caregiverTop{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:8px;
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  text-rendering:optimizeLegibility;
 }
-.caregiverEncouragement .caregiverIcon{
-  width:52px;
-  height:52px;
-  border-radius:18px;
-  display:grid;
-  place-items:center;
-  background:#e3f3ff;
-  font-size:30px;
+body,input,button,textarea,select{
+  font-family:"Assistant",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif !important;
 }
-.caregiverEncouragement h3{
-  margin:0;
-  font-size:22px;
-  font-weight:1000;
-  color:var(--ink);
+button,a,.btn,[role="button"],input[type="checkbox"],input[type="radio"]{
+  min-height:var(--tap);
+  min-width:var(--tap);
+  touch-action:manipulation;
 }
-.caregiverEncouragement p{
-  margin:8px 0 0;
-  font-size:20px;
-  line-height:1.45;
-  font-weight:900;
-  color:#385d7a;
+button,.btn{
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, opacity .18s ease;
 }
-.caregiverEncouragement small{
-  display:block;
-  margin-top:8px;
-  color:var(--muted);
-  font-weight:800;
+button:active,.btn:active{
+  transform:translateY(1px) scale(.99);
+}
+input,textarea,select{
+  max-width:100%;
+  font-size:18px;
+}
+textarea{
+  min-height:92px;
+}
+code,input,textarea{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+img,svg,iframe,audio{
+  max-width:100%;
+}
+.section,.card,.topbar,.panel,.voice-card{
+  max-width:100%;
+}
+.actions{
+  gap:10px!important;
+  flex-wrap:wrap!important;
+}
+@media (max-width:760px){
+  body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  h1{font-size:clamp(30px,9vw,46px)!important;line-height:1.05!important}
+  h2{font-size:clamp(24px,7vw,34px)!important}
+  h3{font-size:clamp(20px,5.8vw,28px)!important}
+  .tabs,.actions,.topActions,.topbar{
+    display:flex!important;
+    flex-wrap:wrap!important;
+  }
+  .tabs button,.actions button,.btn,button{
+    min-height:52px;
+    padding:12px 16px!important;
+  }
+  .formgrid,.grid,.cards,.two,.three{
+    grid-template-columns:1fr!important;
+  }
+  .preview,.phonePreview{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  .voice-card-head{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+  }
+  .voice-card .actions button{
+    width:100%;
+  }
+}
+@media (prefers-color-scheme:dark){
+  body:not(.force-light){
+    background:#142033!important;
+    color:#eef8ff!important;
+  }
+  body:not(.force-light) .card,
+  body:not(.force-light) .section,
+  body:not(.force-light) .voice-card,
+  body:not(.force-light) .caregiverEncouragement{
+    background:#182a3d!important;
+    color:#eef8ff!important;
+    border-color:#31506b!important;
+  }
+  body:not(.force-light) input,
+  body:not(.force-light) textarea,
+  body:not(.force-light) select{
+    background:#0f1c2b!important;
+    color:#eef8ff!important;
+    border-color:#31506b!important;
+  }
+  body:not(.force-light) .small,
+  body:not(.force-light) .muted,
+  body:not(.force-light) .copyHint{
+    color:#c7d9e8!important;
+  }
 }
 
 </style><link rel="manifest" href="../manifest.json">
@@ -693,6 +751,20 @@ button.is-saving::after,
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="../icons/icon-192.png">
 <link rel="icon" href="../favicon.ico" sizes="any">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef7ff">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="השעון המשפחתי">
+<meta property="og:description" content="לוח משפחתי עדין וברור לשגרה, זיכרונות והודעות מרגיעות.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800;900;1000&display=swap" rel="stylesheet">
+
+<!-- V24_MOBILE_UX_META_BOINDEX -->
 </head>
 <body><div id="app">טוען...</div><script>
 const STORAGE_KEY="luach_advanced_v4";
@@ -1066,7 +1138,7 @@ function youtubeEmbed(url){
 
 
 let now=new Date(),tab=new URLSearchParams(location.search).get("tab")||"profile";
-function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="soft" data-a="sendFamilyWhatsapp" style="background:#25D366;color:white;font-weight:1000">🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי</button><button id="saveAllBtn" class="green" data-a="saveAll">💾 שמירת כל השינויים</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
+function header(){const p=dayPart(now),th=theme(now);document.body.className=th.s;return`<header class="hero"><div class="hero-grid"><div><div class="pill">⚙️ Backoffice</div><h1 class="h1">ניהול הלוח</h1><p class="lead">עריכה שקטה וברורה של כל המידע שמופיע במסך המטופלת.</p></div><div class="clock-card"><div class="time-row">${analog(now)}<div class="clockStack"><div class="digital">${two(now.getHours())}:${two(now.getMinutes())}</div><div class="digital12">${time12Hebrew(now)}</div></div></div><div class="date">${esc(fullDate(now))}</div><div class="today">ניהול</div></div></div><nav class="nav no-print"><a class="soft" href="../?mode=patient">👁️ חזרה ללוח</a><button class="warm" data-a="quickPing">💚 שליחת הודעה מיידית</button><button class="soft" data-a="goVoice">🎙️ קול משפחתי</button><button class="soft" data-a="sendWhatsappInvite">📲 שליחה למשפחה בוואטסאפ</button><button class="soft" data-a="sendFamilyWhatsapp" style="background:#25D366;color:white;font-weight:1000">🟢 שליחת הודעת הסבר פשוטה לווטסאפ המשפחתי</button><button id="saveAllBtn" class="green" data-a="saveAll">💾 שמירת כל השינויים</button><button class="soft" data-a="toggleAdminTheme">🌙 מצב תאורה</button><button class="blue" data-a="export">ייצוא JSON</button><button class="soft" data-a="import">ייבוא JSON</button><button data-a="full">⛶ מסך מלא</button></nav>${th.notice?`<div class="notice no-print">${esc(th.notice)}</div>`:""}</header>`}
 function tabs(){const items=[["profile","פרופיל"],["map","מפת עריכה"],["live","Live Ping"],["settings","הגדרות חכמות"],["voice","קול משפחתי"],["privateCloud","ענן פרטי"],["schedule","שגרה"],["contacts","טלפונים"],["family","משפחה"],["meds","תרופות"],["care","אוכל/שתייה"],["symptoms","יומן תסמינים"],["monthly","חודשי"],["safety","בטיחות"],["signs","שילוט"],["book","ספר עוגן"],["cloud","ענן"]];return`<section class="section card no-print"><div class="tabs">${items.map(x=>`<button class="${tab===x[0]?"active":""}" data-a="tab" data-tab="${x[0]}">${x[1]}</button>`).join("")}</div>${data.heartbeat?`<div class="heartbeatBox"><strong>Heartbeat טאבלט:</strong> ${new Date(data.heartbeat.lastSeen).toLocaleString("he-IL")} · ${data.heartbeat.online?"מחובר":"מנותק"} · ${esc(data.heartbeat.page||"")}</div>`:""}</section>`}
 function input(label,path,val,type="text"){return`<label>${esc(label)}<input data-path="${esc(path)}" type="${type}" value="${esc(val)}"></label>`}
 function textarea(label,path,val){return`<label>${esc(label)}<textarea data-path="${esc(path)}">${esc(val)}</textarea></label>`}
@@ -1426,44 +1498,8 @@ async function copyPrivateCloudLinks(){
   try{await navigator.clipboard.writeText(txt);showToast?.("הקישורים הפרטיים הועתקו ✅","ok")}catch{prompt("העתיקו את הקישורים:",txt)}
 }
 
-
-const CAREGIVER_ENCOURAGEMENTS=[
-  name=>`איזה מזל יש ל${name?` ${name}`:"ו/לה"} שיש מי שדואג לו/לה ככה.`,
-  ()=>`כל הכבוד על הדאגה שלך. זה מוערך, גם אם לא תמיד מורגש באותו רגע.`,
-  ()=>`גם דברים קטנים — תמונה, הקלטה, תזכורת או משפט מרגיע — יכולים לעשות שינוי גדול.`,
-  ()=>`הנוכחות שלך נותנת ביטחון. גם כשקשה לראות תגובה ברורה, הלב מרגיש עקביות ורוך.`,
-  ()=>`מותר לך לעשות את זה לאט. טיפול במישהו עם ירידה בזיכרון הוא מרתון, לא ספרינט.`,
-  ()=>`זה בסדר שלא הכול מושלם. עצם זה שבנית דרך לעזור מרחוק זו אהבה בפעולה.`,
-  ()=>`גם אם יש ימים מבלבלים, השגרה שאת/ה יוצר/ת כאן יכולה להפחית פחד ולתת עוגן.`,
-  ()=>`המאמץ שלך חשוב. לפעמים האדם שמולנו לא יודע להגיד תודה, אבל הצורך בביטחון עדיין שם.`,
-  ()=>`כל עדכון קטן בלוח הוא בעצם דרך להגיד: אני כאן, אני זוכר/ת אותך, את/ה לא לבד.`,
-  ()=>`תזכורת גם לך: לדאוג לעצמך זה חלק מהדאגה אליו/אליה.`,
-  ()=>`האהבה שלך נמצאת בפרטים הקטנים — בשעה, בתמונה, בקול, ובמילים המרגיעות.`,
-  ()=>`גם ביום קשה, עצם זה שאת/ה ממשיך/ה לנסות הוא דבר גדול מאוד.`,
-  ()=>`לא תמיד אפשר לעצור את הבלבול, אבל אפשר להוסיף סביבו הרבה ביטחון ורוך.`,
-  ()=>`מה שאת/ה עושה כאן הוא לא “רק טכנולוגיה” — זו דרך לשמור על קשר, שגרה וכבוד.`,
-  ()=>`מותר לבקש עזרה. טיפול באדם עם דמנציה או מחלת שכחה לא נועד להיות לבד.`,
-  ()=>`לפעמים הדבר הכי חשוב הוא פשוט עקביות: אותו קול, אותה תמונה, אותו מסר מרגיע.`,
-  ()=>`גם כשהזיכרון משתנה, תחושת הביטחון שנוצרת ממך עדיין יכולה להישאר.`,
-  ()=>`את/ה לא צריך/ה לפתור הכול היום. מספיק לעשות עוד צעד קטן שמקל על מחר.`,
-  ()=>`הדאגה שלך היא עוגן. גם אם לא תמיד מקבלים חזרה מילים, יש לזה משמעות עמוקה.`,
-  ()=>`כל רגע שבו את/ה מפחית/ה פחד או בלבול הוא רגע של חסד אמיתי.`
-];
-function caregiverNameForEncouragement(){
-  const p=data&&data.person?data.person:{};
-  return String(p.firstName||p.name||p.fullName||"").trim();
-}
-function caregiverEncouragementHtml(){
-  const name=caregiverNameForEncouragement();
-  const todayKey=new Date().toISOString().slice(0,10);
-  let seed=0;
-  for(const ch of (todayKey+name))seed=(seed+ch.charCodeAt(0))%9973;
-  const msg=CAREGIVER_ENCOURAGEMENTS[seed%CAREGIVER_ENCOURAGEMENTS.length](name);
-  return `<section class="caregiverEncouragement" aria-live="polite"><div class="caregiverTop"><div class="caregiverIcon">💙</div><div><h3>גם מי שמטפל/ת צריך/ה רגע של חיזוק</h3></div></div><p>${esc(msg)}</p><small>משפט יומי עדין, כדי להזכיר שגם הדאגה שלך חשובה.</small></section>`;
-}
-
 function content(){return({profile,map:patientEditMap,live,settings,voice,schedule,contacts,family,meds,care,symptoms,monthly,safety,signs,book,cloud,privateCloud:privateCloudSettings}[tab]||profile)()}
-function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${caregiverEncouragementHtml()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
+function render(){if(isOnboardingScreen()){const app=document.getElementById("app");if(!app.dataset.onboarding){app.dataset.onboarding="backoffice";app.innerHTML=onboardingHtml("backoffice");}return}document.getElementById("app").innerHTML=`${statusBadges()}<div class="shell">${header()}${preview()}${tabs()}${content()}<footer class="footer">Backoffice · כל שינוי נשמר ומופיע בלוח הראשי</footer></div><div id="status" class="status"></div>`}
 function setPath(path,val){const parts=path.split(".");let obj=data;while(parts.length>1){obj=obj[parts.shift()]}if(val==="true")val=true;if(val==="false")val=false;if(!Number.isNaN(Number(val))&&path.match(/Minutes|Seconds$/))val=Number(val);obj[parts[0]]=val}
 function saveInputs(){document.querySelectorAll("[data-path]").forEach(el=>setPath(el.dataset.path,el.value));save();showToast?.("נשמר ✅","ok");render()}
 function readRow(row){const o={};row.querySelectorAll("[data-f]").forEach(el=>{let v=el.value;if(v==="true")v=true;if(v==="false")v=false;o[el.dataset.f]=v});const days=row.querySelector("[data-days]");if(days)o.days=[...days.querySelectorAll("input:checked")].map(x=>Number(x.value));return o}
@@ -1746,7 +1782,7 @@ document.addEventListener("click",e=>{
   copyQuickText(el.getAttribute("data-copy-text"));
 },true);
 
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll"){saveInputs();return}if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="toggleAdminTheme"){toggleAdminTheme();return}if(a==="savePrivateCloud"){savePrivateCloud();return}if(a==="copyPrivateCloudLinks"){copyPrivateCloudLinks();return}if(a==="sendFamilyWhatsapp"){sendFamilyWhatsapp();return}if(a==="stopPlayback"){stopManagedAudio();return}if(a==="openVoiceFolder"){openVoiceFolder();return}if(a==="sendWhatsappInvite"){sendWhatsappInvite();return}if(a==="clearPhoto"){const box=b.closest(".photoTools");if(box){box.querySelector('input[type="hidden"][data-f="photo"]').value="";box.querySelector("[data-photo-preview]").textContent="תמונה";}return}if(a==="createBoard"){createBoard();return}if(a==="joinBoard"){joinBoard(document.getElementById("joinBoardInput")?.value);return}if(a==="copyLinks"){copyShareLinks();return}if(a==="setWeatherCity"){setWeatherCity();return}if(a==="updateWeatherFromProfile"){updateWeatherFromProfile();return}if(a==="tab"){stopManagedAudio();tab=b.dataset.tab;try{const u=new URL(location.href);u.searchParams.set("tab",tab);history.replaceState(null,"",u.toString());notifyParentRoute(tab)}catch{}render()}if(a==="goVoice"){tab="voice";try{const u=new URL(location.href);u.searchParams.set("tab","voice");history.replaceState(null,"",u.toString());notifyParentRoute("voice")}catch{}render();return}if(a==="startVoice"){startVoice(b.dataset.key);return}if(a==="stopVoice"){stopVoice(b.dataset.key);return}if(a==="playVoice"){playVoice(b.dataset.key);return}if(a==="deleteVoice"){deleteVoice(b.dataset.key);return}if(a==="saveInputs"||a==="saveAll"){saveInputs();return}if(a==="saveRow")saveRow(b.dataset.type,b.dataset.id);if(a==="addRow")addRow(b.dataset.type);if(a==="delRow")delRow(b.dataset.type,b.dataset.id);if(a==="toggleCare"){data.care[b.dataset.k]=!data.care[b.dataset.k];data.care.date=today();save();render()}if(a==="export")exportJson();if(a==="import")importJson();if(a==="sendPing")sendPing();if(a==="quickPing"){tab="live";render()}if(a==="clearPing"){data.livePing=null;save();render()}if(a==="testChime"){unlockAudio();chime("soft")}if(a==="printSigns"){document.body.classList.add("print-signs");setTimeout(()=>{print();document.body.classList.remove("print-signs")},50)}if(a==="printBook"){document.body.classList.add("print-book");setTimeout(()=>{print();document.body.classList.remove("print-book")},50)}if(a==="testCloud"){try{await pushCloud();await pullCloud();alert("החיבור לגוגל שיט עובד ✅")}catch(err){alert("לא הצליח להתחבר לגוגל שיט. בדקי את OWNER_APPS_SCRIPT_URL ואת הרשאות ה-Web App.")}}if(a==="full"){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}}});
 setInterval(()=>{if(isOnboardingScreen())return;now=new Date();},1000);
 const __backofficeRenderBase=render;
 render=function(){
@@ -1848,5 +1884,21 @@ if("serviceWorker" in navigator){
 */
 
 
-/* V24_CAREGIVER_ENCOURAGEMENT_PATCH_BOINDEX */
+function initAdminThemeToggle(){
+  const key="family_clock_admin_theme";
+  const saved=localStorage.getItem(key);
+  if(saved==="dark")document.body.classList.add("force-dark");
+  if(saved==="light")document.body.classList.add("force-light");
+}
+function toggleAdminTheme(){
+  const key="family_clock_admin_theme";
+  const current=localStorage.getItem(key)||"auto";
+  const next=current==="auto"?"dark":current==="dark"?"light":"auto";
+  localStorage.setItem(key,next);
+  document.body.classList.toggle("force-dark",next==="dark");
+  document.body.classList.toggle("force-light",next==="light");
+  showToast?.(next==="auto"?"מצב תאורה אוטומטי":next==="dark"?"מצב כהה":"מצב בהיר","ok");
+}
+initAdminThemeToggle();
+
 </script></body></html>

@@ -1,5 +1,5 @@
-const CACHE_NAME="family-clock-v24-performance-accessibility-patch";
-const AUDIO_CACHE_NAME="family-clock-drive-audio-runtime-v1";
+const CACHE_NAME="family-clock-v24-best-possible-patch";
+const AUDIO_CACHE_NAME="family-clock-drive-audio-runtime-v2";
 
 const CORE_FILES=[
   "./",
@@ -49,6 +49,8 @@ self.addEventListener("fetch",event=>{
   if(req.method!=="GET")return;
   const url=new URL(req.url);
 
+  // Runtime cache for family voice files. If a recording played once online,
+  // it has a better chance of working during a temporary Wi-Fi drop.
   if(isDriveAudioDownload(url)){
     event.respondWith(
       caches.open(AUDIO_CACHE_NAME).then(cache=>
@@ -57,30 +59,32 @@ self.addEventListener("fetch",event=>{
             cache.put(req,res.clone()).catch(()=>{});
             return res;
           }).catch(()=>cached);
-          return cached || network;
+          return cached || network || Response.error();
         })
       )
     );
     return;
   }
 
+  // Do not cache live data APIs or embedded media.
   if(isLiveApiOrEmbeddedMedia(url))return;
 
+  // Cache first, network update: instant load from device, quiet refresh for next time.
   event.respondWith(
-    caches.match(req).then(cached=>{
-      if(cached)return cached;
-      return fetch(req).then(res=>{
-        const copy=res.clone();
-        caches.open(CACHE_NAME).then(cache=>cache.put(req,copy)).catch(()=>{});
-        return res;
-      }).catch(async()=>{
-        if(req.mode==="navigate"){
-          return (await caches.match("./index.html")) || Response.error();
-        }
-        return Response.error();
-      });
-    })
+    caches.open(CACHE_NAME).then(cache=>
+      cache.match(req).then(cached=>{
+        const network=fetch(req).then(res=>{
+          cache.put(req,res.clone()).catch(()=>{});
+          return res;
+        }).catch(async()=>{
+          if(cached)return cached;
+          if(req.mode==="navigate")return (await cache.match("./index.html")) || Response.error();
+          return Response.error();
+        });
+        return cached || network;
+      })
+    )
   );
 });
 
-/* V24_PERFORMANCE_ACCESSIBILITY_PATCH_SW */
+/* V24_BEST_POSSIBLE_PATCH_SW */
