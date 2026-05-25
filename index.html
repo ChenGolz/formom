@@ -140,7 +140,7 @@ function modeUrl(board,mode,tab=""){
   url.searchParams.set("board",board);
   url.searchParams.set("mode",mode);
   if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
-  url.searchParams.set("v","folder-preset-fix-v8");
+  url.searchParams.set("v","top-voice-hard-fix-v9");
   return url.pathname+url.search;
 }
 function frameSrc(mode,board,tab=""){
@@ -148,7 +148,7 @@ function frameSrc(mode,board,tab=""){
   const params=new URLSearchParams();
   params.set("board",board);
   if(tab)params.set("tab",tab);
-  params.set("v","folder-preset-fix-v8");
+  params.set("v","top-voice-hard-fix-v9");
   return base+"?"+params.toString();
 }
 function loadFrame(mode,tab=""){
@@ -160,6 +160,26 @@ function loadFrame(mode,tab=""){
   document.querySelectorAll("[data-mode-btn]").forEach(b=>b.classList.toggle("active", b.dataset.modeBtn===mode));
   document.querySelectorAll("[data-voice-btn]").forEach(b=>b.classList.toggle("active", !!tab && tab==="voice"));
 }
+
+function hardModeUrl(mode,tab=""){
+  const board=currentBoard();
+  const url=new URL(location.href);
+  url.searchParams.set("board",board);
+  url.searchParams.set("mode",mode);
+  if(tab)url.searchParams.set("tab",tab); else url.searchParams.delete("tab");
+  url.searchParams.set("v","top-voice-hard-fix-v9");
+  return url.toString();
+}
+function hardOpenVoice(){
+  location.href=hardModeUrl("backoffice","voice");
+}
+function hardOpenBackoffice(){
+  location.href=hardModeUrl("backoffice","");
+}
+function hardOpenPatient(){
+  location.href=hardModeUrl("patient","");
+}
+
 function openMode(mode){loadFrame(mode,"")}
 function openVoice(){loadFrame("backoffice","voice")}
 async function copyOneLink(){
@@ -209,7 +229,7 @@ function appShell(){
   const board=currentBoard();
   const mode=currentMode();
   const tab=currentTab();
-  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" data-mode-btn="patient" onclick="openMode('patient')">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" data-mode-btn="backoffice" onclick="openMode('backoffice')">⚙️ ניהול</button><a class="btn voice ${tab==="voice"?"active":""}" data-voice-btn href="${modeUrl(board,'backoffice','voice')}" onclick="event.preventDefault();openVoice()">🎙️ קול משפחתי</a><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
+  return `<div class="shell"><header class="topbar"><div class="toprow"><div class="brand">🧩 השעון המשפחתי <span class="badge">${board}</span></div><div class="tabs"><button type="button" class="btn ${mode==="patient"?"active":""}" onclick="hardOpenPatient()">👁️ שעון המטופל/ת</button><button type="button" class="btn ${mode==="backoffice"&&!tab?"active":""}" onclick="hardOpenBackoffice()">⚙️ ניהול</button><button type="button" class="btn voice ${tab==="voice"?"active":""}" onclick="hardOpenVoice()">🎙️ קול משפחתי</button><button type="button" class="btn soft" onclick="copyOneLink()">🔗 העתקת הקישור</button><button type="button" class="btn soft" onclick="sendWhatsappInvite()">📲 שליחה בוואטסאפ</button></div></div></header><main><iframe id="screenFrame" src="${frameSrc(mode,board,tab)}" title="השעון המשפחתי"></iframe></main></div>`;
 }
 function showHomeHelp(){
   if(localStorage.getItem(HOME_HELP_KEY))return;
@@ -234,6 +254,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 /* DRIVE_URL_SCHEME_FIX_V7 */
 
 /* FOLDER_PRESET_FIX_V8 */
+
+/* TOP_VOICE_HARD_FIX_V9 */
 </script>
 </body>
 </html>

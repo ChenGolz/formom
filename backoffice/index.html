@@ -1303,4 +1303,24 @@ setInterval(fixDriveAudioElements,1000);
 /* DRIVE_URL_SCHEME_FIX_V7 */
 
 /* FOLDER_PRESET_FIX_V8 */
+
+function syncTabFromUrl(){
+  const t=new URLSearchParams(location.search).get("tab");
+  if(t && t!==tab){
+    tab=t;
+    render();
+  }
+}
+window.addEventListener("popstate",syncTabFromUrl);
+setTimeout(()=>{
+  const t=new URLSearchParams(location.search).get("tab");
+  if(t==="voice"){
+    tab="voice";
+    render();
+    setTimeout(()=>document.querySelector(".voiceBox")?.scrollIntoView({behavior:"smooth",block:"start"}),180);
+  }
+},120);
+
+
+/* BACKOFFICE_VOICE_DIRECT_OPEN_FIX_V9 */
 </script></body></html>
